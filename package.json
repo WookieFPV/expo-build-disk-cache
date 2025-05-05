@@ -32,6 +32,7 @@
 		"@biomejs/biome": "1.9.4",
 		"@tsconfig/bun": "1.0.7",
 		"@tsconfig/node18": "18.2.4",
+		"@types/bun": "1.2.12",
 		"tsup": "8.4.0",
 		"typescript": "5.8.3"
 	},
