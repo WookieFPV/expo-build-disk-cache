@@ -55,4 +55,5 @@ const configSchema = z
 
 export const config = configSchema.parse(rawConfig);
 
-if (config.debug) console.debug(`💾 config: ${JSON.stringify(config)}`);
+if (config.debug)
+	console.debug(`💾 config: ${JSON.stringify(config, null, 2)}`);

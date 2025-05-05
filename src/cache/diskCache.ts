@@ -28,9 +28,7 @@ export const cleanupCacheFiles = async (
 ) => {
 	const directory = path.dirname(inputPath);
 	const maxAgeMs = maxAgeDays * (1000 * 60 * 60 * 24);
-	logger.info(
-		`Deleting files older than: ${maxAgeDays} days in ${directory} ${ignoredFile}`,
-	);
+	logger.info(`Deleting files older than: ${maxAgeDays} days in ${directory}`);
 
 	const now = Date.now();
 	let deletedCount = 0;
