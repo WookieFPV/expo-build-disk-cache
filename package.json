@@ -1,0 +1,41 @@
+{
+	"name": "expo-build-disk-cache",
+	"description": "A plugin for Expo CLI that provides disk-based app build caching",
+	"version": "0.0.1",
+	"author": {
+		"name": "WookieFPV (Lukas Müller)",
+		"url": "github.com/WookieFPV"
+	},
+	"license": "MIT",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": ["/dist"],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/WookieFPV/expo-build-disk-cache"
+	},
+	"scripts": {
+		"build": "tsup",
+		"build:dev": "tsup --watch --clean false",
+		"test": "bun test",
+		"lint": "bunx biome check --fix",
+		"lint:CI": "bunx biome check",
+		"typecheck": "tsc",
+		"prepublishOnly": "bun i && bun run lint:CI && tsc && bun run build"
+	},
+	"dependencies": {
+		"@expo/config": "11.0.8",
+		"cosmiconfig": "9.0.0",
+		"env-paths": "3.0.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@tsconfig/bun": "1.0.7",
+		"@tsconfig/node18": "18.2.4",
+		"tsup": "8.4.0",
+		"typescript": "5.8.3"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	}
+}
