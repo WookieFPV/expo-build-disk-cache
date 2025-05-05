@@ -5,8 +5,14 @@ import type {
 	ResolveRemoteBuildCacheProps,
 	UploadRemoteBuildCacheProps,
 } from "@expo/config/build/remoteBuildCache";
-import { cacheDir } from "./config.ts";
+import {
+	cleanupCacheFiles,
+	printCacheStats,
+	updateFileTimestamp,
+} from "./cache/diskCache.ts";
+import { config } from "./config/config.ts";
 import { fileExists, getCachedAppPath } from "./helpers";
+import { logger } from "./logger.ts";
 
 type Options = Record<string, unknown>;
 
@@ -16,19 +22,26 @@ async function readFromDisk({
 	fingerprintHash,
 	runOptions,
 }: ResolveRemoteBuildCacheProps): Promise<string | null> {
+	if (!config.enable) return null;
 	const cachedAppPath = getCachedAppPath({
 		fingerprintHash,
 		platform,
 		projectRoot,
 		runOptions,
-		cacheDir,
+		cacheDir: config.cacheDir,
 	});
+
 	const exists = await fileExists(cachedAppPath);
 	if (exists) {
-		console.log("💾 Using cached build from disk");
+		logger.log("💾 Using cached build from disk");
+		await cleanupCacheFiles(cachedAppPath, config.cacheGcTimeDays, [
+			cachedAppPath,
+		]);
+		await printCacheStats(cachedAppPath);
+		await updateFileTimestamp(cachedAppPath);
 		return cachedAppPath;
 	}
-	console.log("💾 No Cached build found on disk");
+	logger.log("💾 No Cached build found on disk");
 	return null;
 }
 
@@ -39,28 +52,34 @@ async function writeToDisk({
 	fingerprintHash,
 	buildPath,
 }: UploadRemoteBuildCacheProps): Promise<string | null> {
+	if (!config.enable) return null;
 	const cachedAppPath = getCachedAppPath({
 		fingerprintHash,
 		platform,
 		projectRoot,
 		runOptions,
-		cacheDir,
+		cacheDir: config.cacheDir,
 	});
 
 	const exits = await fileExists(cachedAppPath);
 	if (exits) {
-		console.log("💾 Cached build was already saved");
+		logger.log("💾 Cached build was already saved");
 		return cachedAppPath;
 	}
 	try {
+		await cleanupCacheFiles(cachedAppPath, config.cacheGcTimeDays, [
+			cachedAppPath,
+		]);
 		const parentDir = path.dirname(cachedAppPath);
 		await fs.mkdir(parentDir, { recursive: true });
-
 		await fs.cp(buildPath, cachedAppPath, { recursive: true });
-		console.log(`💾 Saved build output to disk: ${cachedAppPath}`);
+
+		logger.log(`💾 Saved build output to disk: ${cachedAppPath}`);
+		await printCacheStats(cachedAppPath);
+
 		return cachedAppPath;
 	} catch (error) {
-		console.error(
+		logger.error(
 			`💾 Failed to save build output to disk at ${cachedAppPath}: ${
 				error instanceof Error ? error.message : "Unknown error"
 			}`,

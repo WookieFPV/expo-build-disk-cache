@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { getPackageJson } from "@expo/config";
 import envPaths from "env-paths";
+import { logger } from "./logger.ts";
 import type { RunOptions } from "./types";
 
 export function getTagName({
@@ -87,7 +88,7 @@ export async function fileExists(filePath: string) {
 		if (error instanceof Error && "code" in error && error.code === "ENOENT")
 			return false;
 
-		console.error(
+		logger.error(
 			`An error occurred while checking file: ${error instanceof Error ? error.message : "Unknown error"}`,
 		);
 		return false;
