@@ -34,9 +34,11 @@ async function readFromDisk({
 	const exists = await fileExists(cachedAppPath);
 	if (exists) {
 		logger.log("💾 Using cached build from disk");
-		await cleanupCacheFiles(cachedAppPath, config.cacheGcTimeDays, [
+		await cleanupCacheFiles(
 			cachedAppPath,
-		]);
+			config.cacheGcTimeDays,
+			cachedAppPath,
+		);
 		await printCacheStats(cachedAppPath);
 		await updateFileTimestamp(cachedAppPath);
 		return cachedAppPath;
@@ -67,9 +69,11 @@ async function writeToDisk({
 		return cachedAppPath;
 	}
 	try {
-		await cleanupCacheFiles(cachedAppPath, config.cacheGcTimeDays, [
+		await cleanupCacheFiles(
 			cachedAppPath,
-		]);
+			config.cacheGcTimeDays,
+			cachedAppPath,
+		);
 		const parentDir = path.dirname(cachedAppPath);
 		await fs.mkdir(parentDir, { recursive: true });
 		await fs.cp(buildPath, cachedAppPath, { recursive: true });

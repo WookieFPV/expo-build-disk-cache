@@ -19,16 +19,18 @@ export const printCacheStats = async (appPath: string) => {
  * Deletes files older than a specified age in a directory (and its subdirectories).
  * @param inputPath The path to the directory to clean up.
  * @param maxAgeDays
- * @param ignoredFiles list of files that won´t be deleted
+ * @param ignoredFile
  */
 export const cleanupCacheFiles = async (
 	inputPath: string,
 	maxAgeDays: number,
-	ignoredFiles: string[] = [],
+	ignoredFile?: string,
 ) => {
 	const directory = path.dirname(inputPath);
 	const maxAgeMs = maxAgeDays * (1000 * 60 * 60 * 24);
-	logger.info(`Deleting files older than: ${maxAgeDays} days in ${directory}`);
+	logger.info(
+		`Deleting files older than: ${maxAgeDays} days in ${directory} ${ignoredFile}`,
+	);
 
 	const now = Date.now();
 	let deletedCount = 0;
@@ -48,7 +50,7 @@ export const cleanupCacheFiles = async (
 					const ageMs = now - mtimeMs;
 					const ageDays = ageMs / (1000 * 60 * 60 * 24);
 
-					if (ageMs > maxAgeMs && !ignoredFiles.includes(file)) {
+					if (ageMs > maxAgeMs && !ignoredFile?.includes(file)) {
 						logger.debug(
 							`  • ${file} (${formatBytes(stats.size)}) ➔ ${(ageDays).toFixed(1)} days old ➔ DELETING...`,
 						);
@@ -71,7 +73,7 @@ export const cleanupCacheFiles = async (
 					const ageDays = ageMs / (1000 * 60 * 60 * 24);
 					const size = await getDirectorySize(filePath);
 
-					if (ageMs > maxAgeMs && !ignoredFiles.includes(file)) {
+					if (ageMs > maxAgeMs && !ignoredFile?.includes(file)) {
 						logger.debug(
 							`  • ${file} (${formatBytes(size)}) ➔ ${(ageDays).toFixed(1)} days old ➔ DELETING...`,
 						);
