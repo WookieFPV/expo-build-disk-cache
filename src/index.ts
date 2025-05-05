@@ -52,13 +52,21 @@ async function writeToDisk({
 		console.log("💾 Cached build was already saved");
 		return cachedAppPath;
 	}
+	try {
+		const parentDir = path.dirname(cachedAppPath);
+		await fs.mkdir(parentDir, { recursive: true });
 
-	const parentDir = path.dirname(cachedAppPath);
-	await fs.mkdir(parentDir, { recursive: true });
-
-	await fs.cp(buildPath, cachedAppPath, { recursive: true });
-	console.log(`💾 Saved build output to disk: ${cachedAppPath}`);
-	return cachedAppPath;
+		await fs.cp(buildPath, cachedAppPath, { recursive: true });
+		console.log(`💾 Saved build output to disk: ${cachedAppPath}`);
+		return cachedAppPath;
+	} catch (error) {
+		console.error(
+			`💾 Failed to save build output to disk at ${cachedAppPath}: ${
+				error instanceof Error ? error.message : "Unknown error"
+			}`,
+		);
+		return null;
+	}
 }
 
 const DiskBuildCacheProvider: RemoteBuildCachePlugin<Options> = {
