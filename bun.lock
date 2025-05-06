@@ -4,10 +4,10 @@
     "": {
       "name": "disk-cache-provider",
       "dependencies": {
-        "@expo/config": "11.0.8",
-        "cosmiconfig": "9.0.0",
-        "env-paths": "3.0.0",
-        "zod": "4.0.0-beta.20250505T012514",
+        "@expo/config": "^11.0.8",
+        "cosmiconfig": "^9.0.0",
+        "env-paths": "^3.0.0",
+        "zod": "^4.0.0-beta.20250505T012514",
       },
       "devDependencies": {
         "@biomejs/biome": "1.9.4",
