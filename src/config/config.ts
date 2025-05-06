@@ -57,8 +57,14 @@ const configSchema = z
 			.catch(handleZodError(defaults.cacheGcTimeDays)),
 	})
 	.catch((err) => {
-		for (const issue of err.issues) {
-			console.error(`Invalid config file ${issue.message}`);
+		// Zod V4 Error Handling:
+		if ("issues" in err && Array.isArray(err.issues)) {
+			for (const issue of err.issues) {
+				console.error(`Invalid config file ${issue.message}`);
+			}
+			// Zod V3 Error Handling:
+		} else if (err.error && err.error instanceof Error) {
+			console.error(`Invalid config file ${err.error.message}`);
 		}
 		return defaults;
 	});

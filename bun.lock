@@ -7,7 +7,7 @@
         "@expo/config": "^11.0.8",
         "cosmiconfig": "^9.0.0",
         "env-paths": "^3.0.0",
-        "zod": "^4.0.0-beta.20250505T012514",
+        "zod": "^4.0.0-beta.20250505T195954",
       },
       "devDependencies": {
         "@biomejs/biome": "1.9.4",
@@ -173,7 +173,7 @@
 
     "@xmldom/xmldom": ["@xmldom/xmldom@0.8.10", "", {}, "sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw=="],
 
-    "@zod/core": ["@zod/core@0.11.4", "", {}, "sha512-ezfAaaxgjSXZw9sH5QJ4/uqFmg8PbwBFtdSlzz1OoXWcSUR4fj4meS491+lk9ZGxCymjJ/pbOSu7nzcxvHtG0g=="],
+    "@zod/core": ["@zod/core@0.11.6", "", {}, "sha512-03Bv82fFSfjDAvMfdHHdGSS6SOJs0iCcJlWJv1kJHRtoTT02hZpyip/2Lk6oo4l4FtjuwTrsEQTwg/LD8I7dJA=="],
 
     "ansi-regex": ["ansi-regex@6.1.0", "", {}, "sha512-7HSX4QQb4CspciLpVFwyRe79O3xsIZDDLER21kERQ71oaPodF8jL725AgJMFAYbooIqolJoRLuM81SpeUkpkvA=="],
 
@@ -411,7 +411,7 @@
 
     "xmlbuilder": ["xmlbuilder@15.1.1", "", {}, "sha512-yMqGBqtXyeN1e3TGYvgNgDVZ3j84W4cwkOXQswghol6APgZWaff9lnbvN7MHYJOiXsvGPXtjTYJEiC9J2wv9Eg=="],
 
-    "zod": ["zod@4.0.0-beta.20250505T012514", "", { "dependencies": { "@zod/core": "0.11.4" } }, "sha512-b9Oif/j2uIFuimTO3xqTZP71cfNcv49G7sSDF8wp4+MH2tSCDgRDy5RKEMbLtD0LTrmGznL/gYqqDW7U80PudA=="],
+    "zod": ["zod@4.0.0-beta.20250505T195954", "", { "dependencies": { "@zod/core": "0.11.6" } }, "sha512-iB8WvxkobVIXMARvQu20fKvbS7mUTiYRpcD8OQV1xjRhxO0EEpYIRJBk6yfBzHAHEdOSDh3SxDITr5Eajr2vtg=="],
 
     "@babel/highlight/chalk": ["chalk@2.4.2", "", { "dependencies": { "ansi-styles": "^3.2.1", "escape-string-regexp": "^1.0.5", "supports-color": "^5.3.0" } }, "sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ=="],
 

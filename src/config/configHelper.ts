@@ -27,9 +27,16 @@ export const cleanupPath = (cacheDir: string | undefined) =>
 
 export const handleZodError = <T>(defaultValue: T) => {
 	return (ctx: z.core.$ZodCatchCtx) => {
-		for (const issue of ctx.issues) {
-			console.warn(`Invalid config value: ${issue.message}`);
+		// Zod V4 Error Handling:
+		if ("issues" in ctx && Array.isArray(ctx.issues)) {
+			for (const issue of ctx.issues) {
+				console.warn(`Invalid config value: ${issue.message}`);
+			}
+			// Zod V3 Error Handling:
+		} else if ("error" in ctx && ctx.error && ctx.error instanceof Error) {
+			console.error(`Invalid config file ${ctx.error.message}`);
 		}
+
 		return defaultValue;
 	};
 };
