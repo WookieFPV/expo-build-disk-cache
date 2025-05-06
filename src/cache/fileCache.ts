@@ -68,6 +68,7 @@ const cleanupCacheFiles = async (
 	maxAgeDays: number,
 	ignoredFile?: string,
 ) => {
+	if (maxAgeDays === -1) return;
 	const directory = path.dirname(inputPath);
 	logger.info(`Deleting files older than: ${maxAgeDays} days in ${directory}`);
 
