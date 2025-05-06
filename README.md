@@ -1,5 +1,7 @@
 # expo-build-disk-cache
 
+> **Warning**: This plugin requires Expo SDK 53 or higher to work
+
 A plugin for Expo CLI that uses the local disk as a build cache, improving build times by caching build artifacts. This can be used in combination with a cloud-synced folder to share the cache across multiple machines.
 
 ## Table of Contents
@@ -11,6 +13,8 @@ A plugin for Expo CLI that uses the local disk as a build cache, improving build
 - [Acknowledgments](#acknowledgments)
 
 ### Getting Started
+
+
 
 1. **Install it as a dev dependency**:
 
