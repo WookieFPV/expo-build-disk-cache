@@ -1,4 +1,4 @@
-import { config } from "./config/config";
+import { getConfig } from "./config/config";
 
 const voidFn = () => {};
 
@@ -10,4 +10,4 @@ const noLogger = {
 	error: console.error,
 } as typeof console;
 
-export const logger = config.debug ? console : noLogger;
+export const logger = getConfig({}).debug ? console : noLogger;

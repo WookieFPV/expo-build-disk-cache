@@ -24,12 +24,22 @@ const explorer = cosmiconfigSync(moduleName, { searchPlaces });
 
 const rawConfig = explorer.search()?.config ?? {};
 
+export type Config = {
+	cacheDir?: string;
+	enable: boolean;
+	debug: boolean;
+	cacheGcTimeDays: number;
+};
+
+/**
+ * Config Defaults
+ */
 const defaults = {
 	cacheDir: undefined,
 	enable: true,
 	debug: false,
 	cacheGcTimeDays: 7,
-};
+} satisfies Config;
 
 const configSchema = z
 	.object({
@@ -53,7 +63,7 @@ const configSchema = z
 		return defaults;
 	});
 
-export const config = configSchema.parse(rawConfig);
-
-if (config.debug)
-	console.debug(`💾 config: ${JSON.stringify(config, null, 2)}`);
+export const getConfig = (appConfig?: Partial<Config>) => {
+	const combinedConfig = { ...appConfig, ...rawConfig };
+	return configSchema.parse(combinedConfig);
+};

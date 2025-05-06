@@ -1,85 +1,52 @@
-import fs from "node:fs/promises";
-import path from "node:path";
 import type { RemoteBuildCachePlugin } from "@expo/config";
 import type {
 	ResolveRemoteBuildCacheProps,
 	UploadRemoteBuildCacheProps,
 } from "@expo/config/build/remoteBuildCache";
-import {
-	cleanupCacheFiles,
-	printCacheStats,
-	updateFileTimestamp,
-} from "./cache/diskCache.ts";
-import { config } from "./config/config.ts";
-import { fileExists, getCachedAppPath } from "./helpers";
+import { getCachedAppPath } from "./buildCache.ts";
+import { fileCache } from "./cache/fileCache.ts";
+import { type Config, getConfig } from "./config/config";
 import { logger } from "./logger.ts";
 
-type Options = Record<string, unknown>;
+async function readFromDisk(
+	args: ResolveRemoteBuildCacheProps,
+	appConfig: Partial<Config>,
+): Promise<string | null> {
+	const { enable, cacheDir, cacheGcTimeDays } = getConfig(appConfig);
+	if (!enable) return null;
+	const cachedAppPath = getCachedAppPath({ ...args, cacheDir });
 
-async function readFromDisk({
-	projectRoot,
-	platform,
-	fingerprintHash,
-	runOptions,
-}: ResolveRemoteBuildCacheProps): Promise<string | null> {
-	if (!config.enable) return null;
-	const cachedAppPath = getCachedAppPath({
-		fingerprintHash,
-		platform,
-		projectRoot,
-		runOptions,
-		cacheDir: config.cacheDir,
-	});
-
-	const exists = await fileExists(cachedAppPath);
+	const exists = await fileCache.has(cachedAppPath);
 	if (exists) {
 		logger.log("💾 Using cached build from disk");
-		await cleanupCacheFiles(
-			cachedAppPath,
-			config.cacheGcTimeDays,
-			cachedAppPath,
-		);
-		await printCacheStats(cachedAppPath);
-		await updateFileTimestamp(cachedAppPath);
+		await fileCache.cleanup(cachedAppPath, cacheGcTimeDays, cachedAppPath);
+		await fileCache.printStats(cachedAppPath);
 		return cachedAppPath;
 	}
 	logger.log("💾 No Cached build found on disk");
 	return null;
 }
 
-async function writeToDisk({
-	projectRoot,
-	runOptions,
-	platform,
-	fingerprintHash,
-	buildPath,
-}: UploadRemoteBuildCacheProps): Promise<string | null> {
-	if (!config.enable) return null;
-	const cachedAppPath = getCachedAppPath({
-		fingerprintHash,
-		platform,
-		projectRoot,
-		runOptions,
-		cacheDir: config.cacheDir,
-	});
+async function writeToDisk(
+	args: UploadRemoteBuildCacheProps,
+	appConfig: Partial<Config>,
+): Promise<string | null> {
+	const { enable, cacheDir, cacheGcTimeDays } = getConfig(appConfig);
+	if (!enable) return null;
 
-	const exits = await fileExists(cachedAppPath);
+	const cachedAppPath = getCachedAppPath({ ...args, cacheDir });
+
+	const exits = await fileCache.has(cachedAppPath);
 	if (exits) {
 		logger.log("💾 Cached build was already saved");
 		return cachedAppPath;
 	}
 	try {
-		await cleanupCacheFiles(
-			cachedAppPath,
-			config.cacheGcTimeDays,
-			cachedAppPath,
-		);
-		const parentDir = path.dirname(cachedAppPath);
-		await fs.mkdir(parentDir, { recursive: true });
-		await fs.cp(buildPath, cachedAppPath, { recursive: true });
+		await fileCache.cleanup(cachedAppPath, cacheGcTimeDays, cachedAppPath);
+		await fileCache.write({ cachedAppPath, buildPath: args.buildPath });
 
 		logger.log(`💾 Saved build output to disk: ${cachedAppPath}`);
-		await printCacheStats(cachedAppPath);
+		await fileCache.printStats(cachedAppPath);
 
 		return cachedAppPath;
 	} catch (error) {
@@ -92,7 +59,7 @@ async function writeToDisk({
 	}
 }
 
-const DiskBuildCacheProvider: RemoteBuildCachePlugin<Options> = {
+const DiskBuildCacheProvider: RemoteBuildCachePlugin<Config> = {
 	resolveRemoteBuildCache: readFromDisk,
 	uploadRemoteBuildCache: writeToDisk,
 };

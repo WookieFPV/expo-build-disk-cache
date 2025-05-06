@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 
 const validExtensions = [".apk", ".app"];
+
 export const isValidFile = (filePath: string): boolean =>
 	validExtensions.some((ext) => filePath.endsWith(ext));
 
