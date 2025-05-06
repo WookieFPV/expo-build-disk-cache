@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.1.0...v0.1.1) (2025-05-06)
+
+
+### Bug Fixes
+
+* ensure that zod works correctly in v3 and v4 (in case the consumer is overriding zod to v3) ([a04bc60](https://github.com/WookieFPV/expo-build-disk-cache/commit/a04bc608fffe999200f6b2511bbb5dbe1b6c7926))
+
 ## [0.1.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.0.1...v0.1.0) (2025-05-06)
 
 
