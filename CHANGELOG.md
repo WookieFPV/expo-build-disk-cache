@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.1.1...v0.2.0) (2025-05-09)
+
+
+### Features
+
+* add support for config file in ~/.local/share/ folder and $XDG_DATA_HOME ([d30b865](https://github.com/WookieFPV/expo-build-disk-cache/commit/d30b86537133565f164b0b7ce4906d1b38d65194))
+
 ## [0.1.1](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.1.0...v0.1.1) (2025-05-06)
 
 
