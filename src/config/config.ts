@@ -1,3 +1,4 @@
+import path from "node:path";
 import { cosmiconfigSync } from "cosmiconfig";
 import { z } from "zod";
 import {
@@ -9,18 +10,25 @@ import {
 
 const moduleName = "disk-cache";
 
+const configFormats = (basePath: string) =>
+	["json", "yaml", "yml"].map((ext) => `${basePath}.${ext}`);
+
 const searchPlaces = [
 	"package.json",
-	`.${moduleName}.json`,
-	`.${moduleName}.yaml`,
-	`.${moduleName}.yml`,
-	`.config/${moduleName}`,
-	`.config/${moduleName}.json`,
-	`.config/${moduleName}.yaml`,
-	`.config/${moduleName}.yml`,
+	...configFormats(`.${moduleName}`),
+	...configFormats(`.config/${moduleName}.json`),
+	...configFormats(`.local/share/.${moduleName}`),
 ];
 
-const explorer = cosmiconfigSync(moduleName, { searchPlaces });
+if (process.env["XDG_DATA_HOME"]) {
+	searchPlaces.push(
+		...configFormats(path.join(process.env["XDG_DATA_HOME"], `.${moduleName}`)),
+	);
+}
+const explorer = cosmiconfigSync(moduleName, {
+	searchPlaces,
+	searchStrategy: "global",
+});
 
 const rawConfig = explorer.search()?.config ?? {};
 
