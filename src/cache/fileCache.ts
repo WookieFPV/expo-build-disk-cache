@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileExists } from "../file/fileExists.ts";
 import { getDirectorySize, getDirectoryStats } from "../file/folderHelper.ts";
 import { formatBytes } from "../file/formatBytes.ts";
 import { logger } from "../logger.ts";
@@ -19,19 +20,10 @@ const cacheWrite = async ({
 };
 
 const cacheHas = async (filePath: string): Promise<boolean> => {
-	try {
-		await fs.access(filePath);
-		await updateFileTimestamp(filePath);
-		return true;
-	} catch (error) {
-		if (error instanceof Error && "code" in error && error.code === "ENOENT")
-			return false;
+	const exists = await fileExists(filePath);
 
-		logger.error(
-			`An error occurred while checking file: ${error instanceof Error ? error.message : "Unknown error"}`,
-		);
-		return false;
-	}
+	if (exists) await updateFileTimestamp(filePath);
+	return exists;
 };
 
 /**
