@@ -25,7 +25,7 @@ export async function getDirectorySize(folderPath: string): Promise<number> {
 
 		return totalSize;
 	} catch (error) {
-		console.error(`Error accessing folder ${folderPath}:`, error);
+		logger.error(`Error accessing folder ${folderPath}:`, error);
 		throw error;
 	}
 }
