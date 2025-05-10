@@ -9,28 +9,33 @@ import {
 } from "./configHelper.ts";
 
 const moduleName = "disk-cache";
+const folderName = "expo-build-disk-cache";
 
 const configFormats = (basePath: string) =>
 	["json", "yaml", "yml"].map((ext) => `${basePath}.${ext}`);
 
 const searchPlaces = [
 	"package.json",
+	...configFormats(moduleName),
 	...configFormats(`.${moduleName}`),
-	...configFormats(`.config/${moduleName}.json`),
-	...configFormats(`.local/share/.${moduleName}`),
+	...configFormats(path.join(".config", moduleName)),
+	...configFormats(path.join(folderName, moduleName)),
+	...configFormats(path.join(".local", "share", folderName, moduleName)),
 ];
 
-if (process.env["XDG_DATA_HOME"]) {
+/*
+This is one approach to support XDG Base Directory Specification.
+The other is using the default behavior of cosmiconfig.
+More Info: https://github.com/cosmiconfig/cosmiconfig?tab=readme-ov-file#searchstrategy -> global
+This adds the location $XDG_DATA_HOME/expo-build-disk-cache/disk-cache.json (or .yaml / .yml)
+The default behavior of cosmiconfig is to look in the location $XDG_DATA_HOME/disk-cache/config.[json/yaml/...] (AFAIK)
+ */
+if (process.env["XDG_DATA_HOME"])
 	searchPlaces.push(
-		...configFormats(path.join(process.env["XDG_DATA_HOME"], `.${moduleName}`)),
+		...configFormats(
+			path.join(process.env["XDG_DATA_HOME"], folderName, moduleName),
+		),
 	);
-}
-const explorer = cosmiconfigSync(moduleName, {
-	searchPlaces,
-	searchStrategy: "global",
-});
-
-const rawConfig = explorer.search()?.config ?? {};
 
 export type Config = {
 	cacheDir?: string;
@@ -42,7 +47,7 @@ export type Config = {
 /**
  * Config Defaults
  */
-const defaults = {
+const defaultConfig = {
 	cacheDir: undefined,
 	enable: true,
 	debug: false,
@@ -54,30 +59,66 @@ const configSchema = z
 		cacheDir: z.string().optional().transform(cleanupPath),
 		enable: booleanLikeSchema
 			.optional()
-			.default(defaults.enable)
-			.catch(handleZodError(defaults.enable)),
+			.default(defaultConfig.enable)
+			.catch(handleZodError(defaultConfig.enable)),
 		debug: booleanLikeSchema
 			.optional()
-			.default(defaults.debug)
-			.catch(handleZodError(defaults.debug)),
+			.default(defaultConfig.debug)
+			.catch(handleZodError(defaultConfig.debug)),
 		cacheGcTimeDays: NumberLikeSchema.optional()
-			.default(defaults.cacheGcTimeDays)
-			.catch(handleZodError(defaults.cacheGcTimeDays)),
+			.default(defaultConfig.cacheGcTimeDays)
+			.catch(handleZodError(defaultConfig.cacheGcTimeDays)),
 	})
-	.catch((err) => {
-		// Zod V4 Error Handling:
-		if ("issues" in err && Array.isArray(err.issues)) {
-			for (const issue of err.issues) {
-				console.error(`Invalid config file ${issue.message}`);
-			}
-			// Zod V3 Error Handling:
-		} else if (err.error && err.error instanceof Error) {
-			console.error(`Invalid config file ${err.error.message}`);
-		}
-		return defaults;
+	.catch(handleZodError(defaultConfig));
+
+let config: Config | null = null;
+
+export function getConfig(appConfig?: Partial<Config>): Config {
+	if (config) return config; // Return cached config if already loaded
+
+	const explorerSync = cosmiconfigSync(moduleName, {
+		searchPlaces,
+		searchStrategy: "global",
 	});
 
-export const getConfig = (appConfig?: Partial<Config>) => {
-	const combinedConfig = { ...appConfig, ...rawConfig };
-	return configSchema.parse(combinedConfig);
-};
+	try {
+		const configResult = explorerSync.search();
+
+		const parseResult = configSchema.safeParse({
+			...defaultConfig,
+			...appConfig,
+			...configResult?.config,
+		});
+		if (!parseResult.success) {
+			console.log(
+				"Config validation failed, ignore config files error:",
+				parseResult.error,
+			);
+			return defaultConfig;
+		}
+		config = parseResult.data;
+
+		if (config.debug) {
+			console.log("expo-build-disk-cache config:");
+			console.log("config files are searched starting from current directory");
+			console.log(`Valid config file names: ${JSON.stringify(searchPlaces)}`);
+			const configSources: Array<{ source: string; config: unknown }> = [];
+			if (configResult)
+				configSources.push({
+					source: configResult.filepath,
+					config: configResult.config,
+				});
+			if (appConfig)
+				configSources.push({ source: "appConfig", config: appConfig });
+
+			console.log(`Config based on: ${JSON.stringify(configSources, null, 2)}`);
+			console.log(`Merged config: ${JSON.stringify(config, null, 2)}`);
+		}
+
+		return config ?? defaultConfig;
+	} catch (error) {
+		console.error("Error loading config:", error);
+		config = defaultConfig; // Assign default config even on error.
+		return config;
+	}
+}

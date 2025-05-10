@@ -64,7 +64,7 @@ You can configure the plugin in two ways:
   ```
 
 - **Option B: In a Separate Config File**  
-  Create a `.disk-cache.json` file in your project or home directory. This allows per-machine customization without affecting the fingerprint and can be added to `.gitignore`. The config file merges with the app config and overrides conflicting settings.
+  Create a `disk-cache.json` file in your project or home directory. This allows per-machine customization without affecting the fingerprint and can be added to `.gitignore`. The config file merges with the app config and overrides conflicting settings.
 
   ```json
   {

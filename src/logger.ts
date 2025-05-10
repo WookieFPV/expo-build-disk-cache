@@ -2,12 +2,13 @@ import { getConfig } from "./config/config";
 
 const voidFn = () => {};
 
-const noLogger = {
+export const logger: Pick<
+	typeof console,
+	"log" | "debug" | "info" | "warn" | "error"
+> = {
 	log: console.log,
-	debug: voidFn,
-	info: voidFn,
+	debug: (...args) => (getConfig().debug ? console.debug(...args) : voidFn),
+	info: (...args) => (getConfig().debug ? console.info(...args) : voidFn),
 	warn: console.warn,
 	error: console.error,
-} as typeof console;
-
-export const logger = getConfig({}).debug ? console : noLogger;
+};
