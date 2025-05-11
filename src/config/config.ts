@@ -1,41 +1,42 @@
-import path from "node:path";
 import { cosmiconfigSync } from "cosmiconfig";
+import envPaths from "env-paths";
+import { xdgConfig } from "xdg-basedir";
 import { z } from "zod";
+import { dedupeArray } from "../utils/dedupeArray.ts";
 import {
 	NumberLikeSchema,
 	booleanLikeSchema,
 	cleanupPath,
+	configFilePaths,
 	handleZodError,
 } from "./configHelper.ts";
 
 const moduleName = "disk-cache";
 const folderName = "expo-build-disk-cache";
 
-const configFormats = (basePath: string) =>
-	["json", "yaml", "yml"].map((ext) => `${basePath}.${ext}`);
-
-const searchPlaces = [
-	"package.json",
-	...configFormats(moduleName),
-	...configFormats(`.${moduleName}`),
-	...configFormats(path.join(".config", moduleName)),
-	...configFormats(path.join(folderName, moduleName)),
-	...configFormats(path.join(".local", "share", folderName, moduleName)),
-];
-
 /*
-This is one approach to support XDG Base Directory Specification.
-The other is using the default behavior of cosmiconfig.
-More Info: https://github.com/cosmiconfig/cosmiconfig?tab=readme-ov-file#searchstrategy -> global
-This adds the location $XDG_DATA_HOME/expo-build-disk-cache/disk-cache.json (or .yaml / .yml)
-The default behavior of cosmiconfig is to look in the location $XDG_DATA_HOME/disk-cache/config.[json/yaml/...] (AFAIK)
+Platform specific directory for config files.
+Example directory locations:
+
+macOS: ~/Library/Preferences/expo-build-disk-cache
+Windows: %APPDATA%\expo-build-disk-cache\Config (for example, C:\Users\USERNAME\AppData\Roaming\expo-build-disk-cache\Config)
+Linux: ~/.config/expo-build-disk-cache (or $XDG_CONFIG_HOME/expo-build-disk-cache)
+
+more: https://github.com/sindresorhus/env-paths?tab=readme-ov-file#pathsconfig
  */
-if (process.env["XDG_DATA_HOME"])
-	searchPlaces.push(
-		...configFormats(
-			path.join(process.env["XDG_DATA_HOME"], folderName, moduleName),
-		),
-	);
+const configDir = envPaths("expo-build-disk-cache", { suffix: "" }).config;
+
+const searchPlaces = dedupeArray(
+	[
+		"package.json",
+		configFilePaths(moduleName), // -> disk-cache.json, disk-cache.yaml or disk-cache.yml
+		configFilePaths(`.${moduleName}`),
+		configFilePaths(folderName, moduleName), // -> expo-build-disk-cache/disk-cache.json [or yaml/yml]
+		configFilePaths(configDir, moduleName),
+		xdgConfig ? configFilePaths(xdgConfig, folderName, moduleName) : [], // to support XDG_CONFIG_HOME on non Linux platforms
+		configFilePaths(".config", moduleName),
+	].flat(),
+);
 
 export type Config = {
 	cacheDir?: string;
@@ -100,8 +101,12 @@ export function getConfig(appConfig?: Partial<Config>): Config {
 
 		if (config.debug) {
 			console.log("expo-build-disk-cache config:");
-			console.log("config files are searched starting from current directory");
-			console.log(`Valid config file names: ${JSON.stringify(searchPlaces)}`);
+			console.log(
+				"config files are searched starting from current directory up to home directory",
+			);
+			console.log(
+				`Searched Config File Locations: ${JSON.stringify(searchPlaces, null, 2)}`,
+			);
 			const configSources: Array<{ source: string; config: unknown }> = [];
 			if (configResult)
 				configSources.push({

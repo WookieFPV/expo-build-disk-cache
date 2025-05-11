@@ -40,10 +40,11 @@ A plugin for Expo CLI that uses the local disk as a build cache, improving build
 
 ### Optional Configuration
 
-You can configure the plugin in two ways:
+You can configure the plugin in a few ways:
 
 - **Option A: In App Config**  
   Add the following to your `app.json` or `app.config.js`:
+  [HINT:] Keep in mind any change here will result in a different fingerprint -> needs rebuilding
 
   ```json
   {
@@ -64,7 +65,7 @@ You can configure the plugin in two ways:
   ```
 
 - **Option B: In a Separate Config File**  
-  Create a `disk-cache.json` file in your project or home directory. This allows per-machine customization without affecting the fingerprint and can be added to `.gitignore`. The config file merges with the app config and overrides conflicting settings.
+  Create a `disk-cache.json` file in your project or home directory. This allows per-machine customization without affecting the fingerprint and can be added to `.gitignore`. The config file merges with the app config and overrides conflicting settings. Also supports the platform specific config folder by using [env-paths](https://github.com/sindresorhus/env-paths?tab=readme-ov-file#pathsconfig).
 
   ```json
   {
@@ -73,10 +74,22 @@ You can configure the plugin in two ways:
   }
   ```
 
+- **Option C: In package.json**  
+  ```json
+  {
+    "disk-cache": {
+      "cacheDir": "~/.my-cache/",
+      "cacheGcTimeDays": 21
+    }
+  }
+  ```
+
 ### Default Configuration
 
 - `cacheDir`: Defaults to a temporary directory in the system's temp folder.
 - `cacheGcTimeDays`: Defaults to 7 days; files will be deleted if not used within this period. Set to `-1` to prevent deletion.
+- `debug`: Defaults to `false`. Set to `true` for verbose logging
+- `enable`: Defaults to `true`. Set to `false` to disable the plugin.
 
 For a complete list of available configuration options, refer to the [source configuration file](src/config/config.ts).
 

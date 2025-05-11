@@ -47,3 +47,20 @@ export const handleZodError = <T>(defaultValue: T) => {
 		return defaultValue;
 	};
 };
+
+const FILE_EXTENSIONS = ["json", "yaml", "yml"];
+
+/**
+ * Helper function to generate config file paths for each file extension
+ */
+export const configFilePaths = (...paths: string[]) => {
+	if (paths.length === 0) return [];
+	const inputPath = path.join(...paths);
+
+	// Path must be relative to the home directory for cosmiconfig package
+	if (path.isAbsolute(inputPath)) {
+		const relativeBase = path.relative(os.homedir(), inputPath);
+		return FILE_EXTENSIONS.map((ext) => `${relativeBase}.${ext}`);
+	}
+	return FILE_EXTENSIONS.map((ext) => `${inputPath}.${ext}`);
+};
