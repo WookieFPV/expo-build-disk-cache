@@ -1,0 +1,103 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Hono S3 API",
+		"version": "1.0.0"
+	},
+	"paths": {
+		"/file/{fileName}": {
+			"get": {
+				"summary": "Get a presigned URL for a file",
+				"parameters": [
+					{
+						"in": "path",
+						"name": "fileName",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "The name of the file"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"url": {
+											"type": "string",
+											"description": "The presigned URL for the file"
+										}
+									},
+									"example": {
+										"url": "https://example.s3.amazonaws.com/your-file.txt?AWSAccessKeyId=YOUR_ACCESS_KEY&Signature=YOUR_SIGNATURE&Expires=TIMESTAMP"
+									}
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "File not found",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "string",
+									"example": "File does not exist"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"summary": "Create a presigned URL for a new file",
+				"parameters": [
+					{
+						"in": "path",
+						"name": "fileName",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "The name of the file to be created"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"url": {
+											"type": "string",
+											"description": "The presigned URL for uploading the file"
+										}
+									},
+									"example": {
+										"url": "https://example.s3.amazonaws.com/your-file.txt?AWSAccessKeyId=YOUR_ACCESS_KEY&Signature=YOUR_SIGNATURE&Expires=TIMESTAMP"
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "File already exists",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "string",
+									"example": "File already exists"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

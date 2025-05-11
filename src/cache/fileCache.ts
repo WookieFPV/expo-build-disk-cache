@@ -66,7 +66,8 @@ export const fileCacheFactory = (
 
 		const { data: files, error } = await tryCatch(readAppFiles(directory));
 		if (error?.message?.startsWith("ENOENT")) return { deletedCount: 0, deletedSize: 0 };
-		if (error) return logger.error(`Error reading directory ${directory}: ${error.message}`);
+		if (error)
+			return logger.debug(`cleanupCacheFiles failed to clean up ${directory}: ${error.message}`);
 
 		for (const file of files) {
 			const filePath = path.join(directory, file);

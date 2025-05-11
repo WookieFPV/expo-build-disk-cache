@@ -105,6 +105,44 @@ Add `remotePlugin` to your configuration to use the EAS remote build cache provi
     }
   }
   ```
+### Custom Build Cache Provider (Experimental)
+
+I build a small remote cache api client into this package.
+You can bring your own Backend & Storage.
+It should work with any Backend following the [Api Spec](src/api/openapi.json).
+Its a very simple API just a Proof of Concept.
+
+I developed a Demo Backend using running on Cloudflare. Hit me up if you want to try it.
+Its build using Cloudflare Worker, R2 (S3 like Storage) and D1 (SQLITE db for auth).
+The Files are stored in Cloudflare R2 with a 7-Day automatic File deletion.
+
+Setup:
+
+  1. Add cache provider in app config (with api-url)
+  ```json
+  {
+    "experiments":{
+      "buildCacheProvider":{
+        "plugin": "expo-build-disk-cache",
+        "options": {
+          "remotePlugin": "expo-build-disk-cache/api",
+          "remoteOptions": {
+            "apiUrl": "https://your-api-com"
+          }
+        }
+      }
+    }
+  }
+  ```
+
+  2. Add `disk-cache-json` with apiToken (add the file to .gitignore)
+  ```json
+  {
+    "remoteOptions": {
+      "apiToken": "my-token-here"
+    }
+  }
+  ```
 
 ### Using a Cloud-Synced Folder for Cache (Not Recommended)
 
