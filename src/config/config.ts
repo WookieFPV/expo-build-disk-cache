@@ -43,6 +43,9 @@ export type Config = {
 	enable: boolean;
 	debug: boolean;
 	cacheGcTimeDays: number;
+	apiToken?: string;
+	apiUrl?: string;
+	apiEnabled: boolean; // Computed property, enabled if both apiToken and apiUrl are set
 };
 
 /**
@@ -53,7 +56,15 @@ const defaultConfig = {
 	enable: true,
 	debug: false,
 	cacheGcTimeDays: 7,
+	apiToken: undefined,
+	apiUrl: undefined,
+	apiEnabled: false,
 } satisfies Config;
+
+const calculateApiEnabled = (data: Omit<Config, "apiEnabled">): Config => ({
+	...data,
+	apiEnabled: !!data.apiToken && !!data.apiUrl,
+});
 
 const configSchema = z
 	.object({
@@ -69,13 +80,16 @@ const configSchema = z
 		cacheGcTimeDays: NumberLikeSchema.optional()
 			.default(defaultConfig.cacheGcTimeDays)
 			.catch(handleZodError(defaultConfig.cacheGcTimeDays)),
+		apiToken: z.string().optional(),
+		apiUrl: z.string().optional(),
 	})
+	.transform(calculateApiEnabled)
 	.catch(handleZodError(defaultConfig));
 
 let config: Config | null = null;
 
 export function getConfig(appConfig?: Partial<Config>): Config {
-	if (config) return config; // Return cached config if already loaded
+	if (config && !appConfig) return config; // Return cached config if already loaded (but always read/update config if appConfig is provided)
 
 	const explorerSync = cosmiconfigSync(moduleName, {
 		searchPlaces,

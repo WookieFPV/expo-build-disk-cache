@@ -21,12 +21,17 @@
 		"lint": "bunx biome check --fix",
 		"lint:CI": "bunx biome check",
 		"typecheck": "tsc",
+		"api:codegen": "npx openapi-typescript src/cloudCache/openapi.json -o src/cloudCache/apiTypes.d.ts && bun run lint",
 		"prepublishOnly": "bun i && bun run lint:CI && tsc && bun run build"
 	},
 	"dependencies": {
 		"@expo/config": "^11.0.8",
 		"cosmiconfig": "^9.0.0",
 		"env-paths": "^3.0.0",
+		"fs-extra": "^11.3.0",
+		"openapi-fetch": "^0.13.7",
+		"tar": "^7.4.3",
+		"uuid": "^11.1.0",
 		"xdg-basedir": "^5.1.0",
 		"zod": "^4.0.0-beta.20250505T195954"
 	},
@@ -36,7 +41,9 @@
 		"@tsconfig/bun": "1.0.7",
 		"@tsconfig/node18": "18.2.4",
 		"@types/bun": "1.2.12",
+		"@types/fs-extra": "11.0.4",
 		"lefthook": "1.11.12",
+		"openapi-typescript": "7.7.1",
 		"tsup": "8.4.0",
 		"typescript": "5.8.3"
 	},

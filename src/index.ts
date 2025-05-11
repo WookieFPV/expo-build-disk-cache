@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { RemoteBuildCachePlugin } from "@expo/config";
 import type {
 	ResolveRemoteBuildCacheProps,
@@ -5,6 +6,7 @@ import type {
 } from "@expo/config/build/remoteBuildCache";
 import { getCachedAppPath } from "./buildCache.ts";
 import { fileCache } from "./cache/fileCache.ts";
+import { cloudCache } from "./cloudCache/cloudCache.ts";
 import { type Config, getConfig } from "./config/config";
 import { logger } from "./logger.ts";
 
@@ -12,18 +14,32 @@ async function readFromDisk(
 	args: ResolveRemoteBuildCacheProps,
 	appConfig: Partial<Config>,
 ): Promise<string | null> {
-	const { enable, cacheDir, cacheGcTimeDays } = getConfig(appConfig);
+	const { enable, cacheDir, cacheGcTimeDays, apiEnabled } =
+		getConfig(appConfig);
 	if (!enable) return null;
 	const cachedAppPath = getCachedAppPath({ ...args, cacheDir });
 
 	const exists = await fileCache.has(cachedAppPath);
 	if (exists) {
-		logger.log("💾 Using cached build from disk");
+		logger.log("💾 Cache hit: Using disk cache");
 		await fileCache.cleanup(cachedAppPath, cacheGcTimeDays, cachedAppPath);
 		await fileCache.printStats(cachedAppPath);
 		return cachedAppPath;
 	}
-	logger.log("💾 No Cached build found on disk");
+
+	if (apiEnabled) {
+		const bitriseCachePath = await cloudCache.download({
+			cacheDir: path.dirname(cachedAppPath),
+			fileName: path.basename(cachedAppPath),
+		});
+
+		if (bitriseCachePath) {
+			logger.log("💾 Cache hit: remote cache downloaded");
+			return bitriseCachePath;
+		}
+	}
+
+	logger.debug("💾 Cache miss: No cached build found.");
 	return null;
 }
 
@@ -31,7 +47,8 @@ async function writeToDisk(
 	args: UploadRemoteBuildCacheProps,
 	appConfig: Partial<Config>,
 ): Promise<string | null> {
-	const { enable, cacheDir, cacheGcTimeDays } = getConfig(appConfig);
+	const { enable, cacheDir, cacheGcTimeDays, apiEnabled } =
+		getConfig(appConfig);
 	if (!enable) return null;
 
 	const cachedAppPath = getCachedAppPath({ ...args, cacheDir });
@@ -45,9 +62,21 @@ async function writeToDisk(
 		await fileCache.cleanup(cachedAppPath, cacheGcTimeDays, cachedAppPath);
 		await fileCache.write({ cachedAppPath, buildPath: args.buildPath });
 
-		logger.log(`💾 Saved build output to disk: ${cachedAppPath}`);
+		logger.log(`💾 Saved build to disk ${cacheDir ? `${cacheDir}` : ""}`);
 		await fileCache.printStats(cachedAppPath);
 
+		if (apiEnabled) {
+			try {
+				logger.log("💾 Cache update: uploading...");
+				await cloudCache.upload({
+					cacheDir: path.dirname(cachedAppPath),
+					fileName: path.basename(cachedAppPath),
+				});
+				logger.log("💾 Cache update: Uploaded!");
+			} catch (e) {
+				logger.log(`💾 Cache update: Failed to upload to the cloud: ${e}`);
+			}
+		}
 		return cachedAppPath;
 	} catch (error) {
 		logger.error(
