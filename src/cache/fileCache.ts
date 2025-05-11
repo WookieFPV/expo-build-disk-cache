@@ -74,8 +74,8 @@ const cleanupCacheFiles = async (
 	if (error?.message?.startsWith("ENOENT"))
 		return { deletedCount: 0, deletedSize: 0 };
 	if (error)
-		return logger.error(
-			`Error reading directory ${directory}: ${error.message}`,
+		return logger.debug(
+			`cleanupCacheFiles failed to clean up ${directory}: ${error.message}`,
 		);
 
 	for (const file of files) {
