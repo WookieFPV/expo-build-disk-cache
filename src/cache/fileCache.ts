@@ -70,8 +70,8 @@ const cleanupCacheFiles = async (
 
 	const { data: files, error } = await tryCatch(readAppFiles(directory));
 	if (error)
-		return logger.error(
-			`Error reading directory ${directory}: ${error.message}`,
+		return logger.debug(
+			`cleanupCacheFiles failed to clean up ${directory}: ${error.message}`,
 		);
 
 	for (const file of files) {

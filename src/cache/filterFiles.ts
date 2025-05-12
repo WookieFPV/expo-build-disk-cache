@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { tryCatch } from "../utils/tryCatch.ts";
 
 const validExtensions = [".apk", ".app"];
 
@@ -9,6 +10,7 @@ export const readAppFiles = async (
 	directory: string,
 	filterFunc = isValidFile,
 ): Promise<string[]> => {
-	const files = await fs.readdir(directory);
+	const { data: files } = await tryCatch(fs.readdir(directory));
+	if (!files) return [];
 	return files.filter(filterFunc);
 };

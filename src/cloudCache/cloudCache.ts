@@ -19,6 +19,7 @@ const download = async ({ fileName, cacheDir }: CloudCacheArgs) => {
 	}
 	if (!url) return null;
 
+	await tryCatch(fs.mkdir(cacheDir, { recursive: true }));
 	const targetPath = path.join(cacheDir, fileName);
 
 	logger.log("💾 Cache hit: remote cache downloading...");
