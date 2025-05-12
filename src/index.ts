@@ -9,6 +9,7 @@ import { fileCache } from "./cache/fileCache.ts";
 import { cloudCache } from "./cloudCache/cloudCache.ts";
 import { type Config, getConfig } from "./config/config";
 import { logger } from "./logger.ts";
+import { tryCatch } from "./utils/tryCatch.ts";
 
 async function readFromDisk(
 	args: ResolveRemoteBuildCacheProps,
@@ -28,10 +29,12 @@ async function readFromDisk(
 	}
 
 	if (apiEnabled) {
-		const bitriseCachePath = await cloudCache.download({
-			cacheDir: path.dirname(cachedAppPath),
-			fileName: path.basename(cachedAppPath),
-		});
+		const { data: bitriseCachePath } = await tryCatch(
+			cloudCache.download({
+				cacheDir: path.dirname(cachedAppPath),
+				fileName: path.basename(cachedAppPath),
+			}),
+		);
 
 		if (bitriseCachePath) {
 			logger.log("💾 Cache hit: remote cache downloaded");

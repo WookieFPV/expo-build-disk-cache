@@ -10,7 +10,13 @@ import { getDownloadUrl, getUploadUrl } from "./presignedUrls.ts";
 type CloudCacheArgs = { fileName: string; cacheDir: string };
 
 const download = async ({ fileName, cacheDir }: CloudCacheArgs) => {
-	const url = await getDownloadUrl(fileName);
+	const { data: url, error: fetchError } = await tryCatch(
+		getDownloadUrl(fileName),
+	);
+	if (fetchError) {
+		logger.log(`💾 Failed to download file: ${fetchError.message}`);
+		return null;
+	}
 	if (!url) return null;
 
 	const targetPath = path.join(cacheDir, fileName);
@@ -21,14 +27,19 @@ const download = async ({ fileName, cacheDir }: CloudCacheArgs) => {
 		logger.log(`💾 Failed to download file: ${error.message}`);
 		return null;
 	}
-
-	await uncompressTarBall(myDir);
+	const { error: compressErr } = await tryCatch(uncompressTarBall(myDir));
+	if (compressErr) {
+		logger.log(
+			`💾 Failed to uncompress downloaded file: ${compressErr.message}`,
+		);
+		return null;
+	}
 	return myDir;
 };
 
 const upload = async ({ fileName, cacheDir }: CloudCacheArgs) => {
 	const url = await getUploadUrl(fileName);
-
+	logger.debug(`Uploading from presigned URL: ${url}`);
 	const tarPath = await compressFileOrFolder({
 		parentPath: cacheDir,
 		fileOrFolderName: fileName,
