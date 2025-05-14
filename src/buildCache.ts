@@ -1,6 +1,6 @@
 import path from "node:path";
 import { getPackageJson } from "@expo/config";
-import type { ResolveRemoteBuildCacheProps } from "@expo/config/build/remoteBuildCache";
+import type { ResolveBuildCacheProps } from "@expo/config";
 import { getCacheDir } from "./cache/cacheDirectory.ts";
 
 export function getTagName({
@@ -8,7 +8,7 @@ export function getTagName({
 	projectRoot,
 	runOptions,
 }: Pick<
-	ResolveRemoteBuildCacheProps,
+	ResolveBuildCacheProps,
 	"fingerprintHash" | "projectRoot" | "runOptions"
 >): string {
 	const isDevClient = isDevClientBuild({ projectRoot, runOptions });
@@ -16,7 +16,7 @@ export function getTagName({
 	return `fingerprint.${fingerprintHash}${isDevClient ? ".dev-client" : ""}`;
 }
 
-interface GetAppPath extends ResolveRemoteBuildCacheProps {
+interface GetAppPath extends ResolveBuildCacheProps {
 	cacheDir?: string;
 }
 
@@ -40,7 +40,7 @@ export function getCachedAppPath({
 export function isDevClientBuild({
 	runOptions,
 	projectRoot,
-}: Pick<ResolveRemoteBuildCacheProps, "projectRoot" | "runOptions">): boolean {
+}: Pick<ResolveBuildCacheProps, "projectRoot" | "runOptions">): boolean {
 	if (!hasDirectDevClientDependency(projectRoot)) {
 		return false;
 	}

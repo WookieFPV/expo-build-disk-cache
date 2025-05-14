@@ -2,7 +2,10 @@
 
 > **Warning**: This plugin requires Expo SDK 53 or higher to work
 
-A plugin for Expo CLI that uses the local disk as a build cache, improving build times by caching build artifacts. This can be used in combination with a cloud-synced folder to share the cache across multiple machines.
+🚀 Drastically speed up your npx expo run:[android|ios] builds!\
+This plugin adds local disk caching for Expo builds.
+If a matching cached build exists, it launches instantly, letting you skip the often time-consuming compilation step entirely.
+Uses Expo fingerprint (a hash of your native project and dependencies) for intelligent invalidation, building fresh only when needed.
 
 ## Table of Contents
 
@@ -26,13 +29,9 @@ A plugin for Expo CLI that uses the local disk as a build cache, improving build
 
    ```json
    {
-     "expo": {
-       "experiments": {
-         "remoteBuildCache": {
-           "provider": {
-             "plugin": "expo-build-disk-cache"
-           }
-         }
+     "experiments": {
+       "buildCacheProvider": {
+         "plugin": "expo-build-disk-cache"
        }
      }
    }
@@ -48,16 +47,12 @@ You can configure the plugin in a few ways:
 
   ```json
   {
-    "expo": {
-      "experiments": {
-        "remoteBuildCache": {
-          "provider": {
-            "plugin": "expo-build-disk-cache",
-            "options": {
-              "cacheDir": "~/.my-cache/",
-              "cacheGcTimeDays": 21
-            }
-          }
+    "experiments": {
+      "buildCacheProvider": {
+        "plugin": "expo-build-disk-cache",
+        "options": {
+          "cacheDir": "~/.my-cache/",
+          "cacheGcTimeDays": 21
         }
       }
     }
