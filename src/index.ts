@@ -1,15 +1,15 @@
-import type { RemoteBuildCachePlugin } from "@expo/config";
 import type {
-	ResolveRemoteBuildCacheProps,
-	UploadRemoteBuildCacheProps,
-} from "@expo/config/build/remoteBuildCache";
+	BuildCacheProviderPlugin,
+	ResolveBuildCacheProps,
+	UploadBuildCacheProps,
+} from "@expo/config";
 import { getCachedAppPath } from "./buildCache.ts";
 import { fileCache } from "./cache/fileCache.ts";
 import { type Config, getConfig } from "./config/config";
 import { logger } from "./logger.ts";
 
 async function readFromDisk(
-	args: ResolveRemoteBuildCacheProps,
+	args: ResolveBuildCacheProps,
 	appConfig: Partial<Config>,
 ): Promise<string | null> {
 	const { enable, cacheDir, cacheGcTimeDays } = getConfig(appConfig);
@@ -28,7 +28,7 @@ async function readFromDisk(
 }
 
 async function writeToDisk(
-	args: UploadRemoteBuildCacheProps,
+	args: UploadBuildCacheProps,
 	appConfig: Partial<Config>,
 ): Promise<string | null> {
 	const { enable, cacheDir, cacheGcTimeDays } = getConfig(appConfig);
@@ -59,9 +59,9 @@ async function writeToDisk(
 	}
 }
 
-const DiskBuildCacheProvider: RemoteBuildCachePlugin<Config> = {
-	resolveRemoteBuildCache: readFromDisk,
-	uploadRemoteBuildCache: writeToDisk,
+const DiskBuildCacheProvider: BuildCacheProviderPlugin<Config> = {
+	resolveBuildCache: readFromDisk,
+	uploadBuildCache: writeToDisk,
 };
 
 export default DiskBuildCacheProvider;

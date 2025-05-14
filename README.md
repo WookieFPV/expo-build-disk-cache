@@ -29,13 +29,9 @@ Uses Expo fingerprint (a hash of your native project and dependencies) for intel
 
    ```json
    {
-     "expo": {
-       "experiments": {
-         "remoteBuildCache": {
-           "provider": {
-             "plugin": "expo-build-disk-cache"
-           }
-         }
+     "experiments": {
+       "buildCacheProvider": {
+         "plugin": "expo-build-disk-cache"
        }
      }
    }
@@ -51,16 +47,12 @@ You can configure the plugin in a few ways:
 
   ```json
   {
-    "expo": {
-      "experiments": {
-        "remoteBuildCache": {
-          "provider": {
-            "plugin": "expo-build-disk-cache",
-            "options": {
-              "cacheDir": "~/.my-cache/",
-              "cacheGcTimeDays": 21
-            }
-          }
+    "experiments": {
+      "buildCacheProvider": {
+        "plugin": "expo-build-disk-cache",
+        "options": {
+          "cacheDir": "~/.my-cache/",
+          "cacheGcTimeDays": 21
         }
       }
     }
