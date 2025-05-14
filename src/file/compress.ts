@@ -8,6 +8,8 @@ import { tryCatch } from "../utils/tryCatch.ts";
 
 const tmpFolder = envPaths("expo-build-disk-cache_zip", { suffix: "" }).temp;
 
+export const tarGzExtension = ".tar.gz";
+
 export const compressFileOrFolder = async ({
 	fileOrFolderName,
 	parentPath,
@@ -42,10 +44,15 @@ export const compressFileOrFolder = async ({
  * Uncompress a tarball file in place (if this fails it will not delete the file)
  */
 export const uncompressTarBall = async (filePath: string) => {
+	const extractedPath = filePath.replace(/\.tar\.gz$/, "");
 	try {
 		await extract({ cwd: path.dirname(filePath), file: filePath });
+		void tryCatch(fs.unlink(filePath)); // <-- not awaited because we don't care
+		return extractedPath;
 	} catch (e) {
-		await fs.unlink(filePath); // remove zip file if it fails because our zip files have the normal .apk / .app extension --> the same as the original file
+		// Delete potentially corrupted files:
+		await tryCatch(fs.unlink(filePath));
+		await tryCatch(fs.unlink(extractedPath));
 		throw e;
 	}
 };

@@ -1,6 +1,10 @@
 import path from "node:path";
 import fs from "fs-extra";
-import { compressFileOrFolder, uncompressTarBall } from "../file/compress.ts";
+import {
+	compressFileOrFolder,
+	tarGzExtension,
+	uncompressTarBall,
+} from "../file/compress.ts";
 import { downloadFile } from "../file/downloadFile.ts";
 import { uploadFile } from "../file/uploadFile.ts";
 import { logger } from "../logger.ts";
@@ -20,33 +24,44 @@ const download = async ({ fileName, cacheDir }: CloudCacheArgs) => {
 	if (!url) return null;
 
 	await tryCatch(fs.mkdir(cacheDir, { recursive: true }));
-	const targetPath = path.join(cacheDir, fileName);
+	const targetPath = path.join(cacheDir, `${fileName}${tarGzExtension}`);
 
 	logger.log("💾 Cache hit: remote cache downloading...");
-	const { data: myDir, error } = await tryCatch(downloadFile(url, targetPath));
+	const { data: tarFile, error } = await tryCatch(
+		downloadFile(url, targetPath),
+	);
 	if (error) {
 		logger.log(`💾 Failed to download file: ${error.message}`);
 		return null;
 	}
-	const { error: compressErr } = await tryCatch(uncompressTarBall(myDir));
+	const { data: apkPath, error: compressErr } = await tryCatch(
+		uncompressTarBall(tarFile),
+	);
 	if (compressErr) {
-		logger.log(
-			`💾 Failed to uncompress downloaded file: ${compressErr.message}`,
-		);
+		logger.log(`💾 Failed to uncompress file: ${compressErr.message}`);
 		return null;
 	}
-	return myDir;
+	logger.log("💾 Cache hit: remote cache downloaded");
+	return apkPath;
 };
 
 const upload = async ({ fileName, cacheDir }: CloudCacheArgs) => {
-	const url = await getUploadUrl(fileName);
-	logger.debug(`Uploading from presigned URL: ${url}`);
+	const upload = await getUploadUrl(fileName);
+	if (upload.error === "exists")
+		return logger.log("💾 Cache update: Already exists in the cloud");
+	if (upload.error)
+		return logger.log(
+			`💾 Cache update: Failed to get upload link: ${upload.error}`,
+		);
+
+	logger.log("💾 Cache update: uploading...");
 	const tarPath = await compressFileOrFolder({
 		parentPath: cacheDir,
 		fileOrFolderName: fileName,
 	});
-	await uploadFile(url, tarPath);
+	await uploadFile(upload.data, tarPath);
 	await tryCatch(fs.unlink(tarPath));
+	logger.log("💾 Cache update: Uploaded!");
 };
 
 export const cloudCache = {

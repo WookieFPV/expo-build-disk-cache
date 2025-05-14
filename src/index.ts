@@ -35,11 +35,7 @@ async function readFromDisk(
 				fileName: path.basename(cachedAppPath),
 			}),
 		);
-
-		if (bitriseCachePath) {
-			logger.log("💾 Cache hit: remote cache downloaded");
-			return bitriseCachePath;
-		}
+		if (bitriseCachePath) return bitriseCachePath;
 	}
 
 	logger.debug("💾 Cache miss: No cached build found.");
@@ -70,12 +66,10 @@ async function writeToDisk(
 
 		if (apiEnabled) {
 			try {
-				logger.log("💾 Cache update: uploading...");
 				await cloudCache.upload({
 					cacheDir: path.dirname(cachedAppPath),
 					fileName: path.basename(cachedAppPath),
 				});
-				logger.log("💾 Cache update: Uploaded!");
 			} catch (e) {
 				logger.log(`💾 Cache update: Failed to upload to the cloud: ${e}`);
 			}

@@ -1,4 +1,5 @@
 import { logger } from "../logger.ts";
+import type { Result } from "../utils/tryCatch.ts";
 import { api } from "./api.ts";
 
 export const getDownloadUrl = async (fileName: string) => {
@@ -13,13 +14,19 @@ export const getDownloadUrl = async (fileName: string) => {
 	return null;
 };
 
-export const getUploadUrl = async (fileName: string) => {
-	const { data, error } = await api.value.POST("/file/{fileName}", {
+export const getUploadUrl = async (
+	fileName: string,
+): Promise<Result<string, "exists" | Error>> => {
+	const { data, error, response } = await api.value.POST("/file/{fileName}", {
 		params: { path: { fileName } },
 	});
+	if (response.status === 204) return { error: "exists", data: null };
+	if (error) {
+		logger.log(`💾 Failed to get upload link: ${error}`);
+		throw error;
+	}
 
-	const uploadUrl = data?.url;
-	if (uploadUrl) return uploadUrl;
-	logger.log(`💾 Failed to get upload link: ${error}`);
-	throw error;
+	const url = data?.url;
+	if (url) return { data: url, error: null };
+	throw Error("getUploadUrl returned no URL ");
 };
