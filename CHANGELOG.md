@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.2.0...v0.3.0) (2025-05-14)
+
+
+### Features
+
+* Enhanced config loading: now supports many more possible locations and can load config files from `$XDG_DATA_HOME/expo-build-disk-cache/disk-cache.json`.  
+  ([7f53c3b](https://github.com/WookieFPV/expo-build-disk-cache/commit/7f53c3b0d049a806786da7225a729a5f6d9fe4ed))
+
+### Bug Fixes
+
+* Updated naming and configuration for the Expo BuildCache feature (renamed from RemoteBuildCache by Expo).  
+  ([bb65649](https://github.com/WookieFPV/expo-build-disk-cache/commit/bb6564918958d1abf7cee406e06b5e5ba06fd701)). If you experience any issues update `@expo/config` to the latest version.
+
 ## [0.2.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.1.1...v0.2.0) (2025-05-09)
 
 
