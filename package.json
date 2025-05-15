@@ -1,7 +1,7 @@
 {
 	"name": "expo-build-disk-cache",
 	"description": "A plugin for Expo CLI that provides disk-based app build caching",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"author": {
 		"name": "WookieFPV (Lukas Müller)",
 		"url": "github.com/WookieFPV"
@@ -24,6 +24,7 @@
 		"prepublishOnly": "bun i && bun run lint:CI && tsc && bun run build"
 	},
 	"dependencies": {
+		"@expo/cli": "^0.24.13",
 		"@expo/config": "^11.0.10",
 		"cosmiconfig": "^9.0.0",
 		"env-paths": "^3.0.0",

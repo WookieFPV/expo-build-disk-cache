@@ -43,6 +43,8 @@ export type Config = {
 	enable: boolean;
 	debug: boolean;
 	cacheGcTimeDays: number;
+	remotePlugin?: string;
+	remoteOptions?: Record<string, unknown>;
 };
 
 /**
@@ -69,6 +71,8 @@ const configSchema = z
 		cacheGcTimeDays: NumberLikeSchema.optional()
 			.default(defaultConfig.cacheGcTimeDays)
 			.catch(handleZodError(defaultConfig.cacheGcTimeDays)),
+		remotePlugin: z.string().optional(),
+		remoteOptions: z.object().optional(),
 	})
 	.catch(handleZodError(defaultConfig));
 
