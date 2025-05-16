@@ -101,9 +101,9 @@ async function writeToDisk(
 	}
 }
 
-const DiskBuildCacheProvider: BuildCacheProviderPlugin<Config> = {
+const DiskBuildCacheProvider = {
 	resolveBuildCache: readFromDisk,
 	uploadBuildCache: writeToDisk,
-};
+} satisfies BuildCacheProviderPlugin<Config>;
 
 export default DiskBuildCacheProvider;
