@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.1...v0.4.2) (2025-05-16)
+
+
+### Bug Fixes
+
+* remove warning if cache_folder doesn't exist (happened on the first run if the cacheDir doesn't exist yet) ([7c16010](https://github.com/WookieFPV/expo-build-disk-cache/commit/7c16010427b18fc2cf6127274d486d4db6f95a76))
+
 ## [0.4.1](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.0...v0.4.1) (2025-05-16)
 
 
