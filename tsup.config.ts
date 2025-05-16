@@ -4,6 +4,8 @@ export default defineConfig({
 	entry: ["src/index.ts"],
 	format: ["cjs"],
 	clean: true,
-	splitting: false,
-	dts: false,
+	splitting: true,
+	dts: true,
+	platform: "node",
+	target: "node18",
 });

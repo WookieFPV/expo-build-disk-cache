@@ -1,8 +1,8 @@
 import { cosmiconfigSync } from "cosmiconfig";
 import envPaths from "env-paths";
-import { xdgConfig } from "xdg-basedir";
 import { z } from "zod";
 import { dedupeArray } from "../utils/dedupeArray.ts";
+import { xdgConfig } from "../utils/npmXdgBasedir.ts";
 import {
 	NumberLikeSchema,
 	booleanLikeSchema,
@@ -79,7 +79,7 @@ const configSchema = z
 let config: Config | null = null;
 
 export function getConfig(appConfig?: Partial<Config>): Config {
-	if (config) return config; // Return cached config if already loaded
+	if (config && !appConfig) return config; // Return cached config if already loaded & no new appConfig is passed
 
 	const explorerSync = cosmiconfigSync(moduleName, {
 		searchPlaces,
