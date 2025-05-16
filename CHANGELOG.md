@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.3.0...v0.4.0) (2025-05-16)
+
+
+### Features
+
+* add support for remote build cache provider (like EAS) to combine the benefits of remote and local caching ([2723778](https://github.com/WookieFPV/expo-build-disk-cache/commit/27237784b7f3b2a5352989161fb3eb64968d1d5a))
+
 ## [0.3.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.2.0...v0.3.0) (2025-05-14)
 
 
