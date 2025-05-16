@@ -12,8 +12,9 @@ Can be combined with remote caching providers like EAS (this will cache download
 
 - [Getting Started](#getting-started)
 - [Optional Configuration](#optional-configuration)
-- [Using a Cloud-Synced Folder for Cache](#using-a-cloud-synced-folder-for-cache)
-- [Benefits](#benefits)
+- [Default Configuration](#default-configuration)
+- [Combine with EAS Build Cache Provider (Recommended Setup)](#combine-with-eas-build-cache-provider-recommended-setup)
+- [Using a Cloud-Synced Folder for Cache (Not Recommended)](#using-a-cloud-synced-folder-for-cache-not-recommended)
 - [Acknowledgments](#acknowledgments)
 
 ### Getting Started
