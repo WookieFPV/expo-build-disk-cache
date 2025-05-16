@@ -62,6 +62,8 @@ const cleanupCacheFiles = async (
 ) => {
 	if (maxAgeDays === -1) return;
 	const directory = path.dirname(inputPath);
+	await tryCatch(fs.mkdir(directory, { recursive: true }));
+
 	logger.info(`Deleting files older than: ${maxAgeDays} days in ${directory}`);
 
 	const now = Date.now();
@@ -69,6 +71,8 @@ const cleanupCacheFiles = async (
 	let deletedSize = 0;
 
 	const { data: files, error } = await tryCatch(readAppFiles(directory));
+	if (error?.message?.startsWith("ENOENT"))
+		return { deletedCount: 0, deletedSize: 0 };
 	if (error)
 		return logger.error(
 			`Error reading directory ${directory}: ${error.message}`,
