@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.0...v0.4.1) (2025-05-16)
+
+
+### Bug Fixes
+
+* crash on node version before node 22 by removing esm only package & update bundling config (fix issue [#8](https://github.com/WookieFPV/expo-build-disk-cache/issues/8)) ([edf7f98](https://github.com/WookieFPV/expo-build-disk-cache/commit/edf7f9895b497d5fff38fd022dd6b0c5fb8a8b02))
+
 ## [0.4.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.3.0...v0.4.0) (2025-05-16)
 
 
