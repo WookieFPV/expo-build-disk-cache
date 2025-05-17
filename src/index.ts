@@ -15,7 +15,8 @@ async function readFromDisk(
 	appConfig: Partial<Config>,
 ): Promise<string | null> {
 	try {
-		const { enable, cacheDir, cacheGcTimeDays } = getConfig(appConfig);
+		const { enable, cacheDir, cacheGcTimeDays, remoteOptions } =
+			getConfig(appConfig);
 		if (!enable) return null;
 		const cachedAppPath = getCachedAppPath({ ...args, cacheDir });
 
@@ -31,26 +32,25 @@ async function readFromDisk(
 			try {
 				const remotePlugin = await getRemotePlugin(args, {
 					remotePlugin: appConfig.remotePlugin,
-					remoteOptions: appConfig.remoteOptions,
+					remoteOptions,
 				});
 				if (!remotePlugin) return null;
 
 				const downloadPath = await remotePlugin.resolveBuildCache(
 					args,
-					appConfig.remoteOptions,
+					remoteOptions,
 				);
-				if (downloadPath) {
-					// Copy to disk cache (to get properly cached)
-					await tryCatch(
-						fileCache.write({ cachedAppPath, buildPath: downloadPath }),
-					);
-					return cachedAppPath;
-				}
+				if (!downloadPath) return null;
+				// Copy to disk cache (to get properly cached)
+				const { error } = await tryCatch(
+					fileCache.write({ cachedAppPath, buildPath: downloadPath }),
+				);
+				if (error) return null;
+				return cachedAppPath;
 			} catch (e) {
 				logger.log(`💾 Failed to download build: ${e}`);
 			}
 		}
-
 		return null;
 	} catch (e) {
 		logger.log(`💾 Failed to read cache: ${e}`);
@@ -62,7 +62,8 @@ async function writeToDisk(
 	args: UploadBuildCacheProps,
 	appConfig: Partial<Config>,
 ): Promise<string | null> {
-	const { enable, cacheDir, cacheGcTimeDays } = getConfig(appConfig);
+	const { enable, cacheDir, cacheGcTimeDays, remoteOptions } =
+		getConfig(appConfig);
 	if (!enable) return null;
 
 	const cachedAppPath = getCachedAppPath({ ...args, cacheDir });
@@ -82,10 +83,10 @@ async function writeToDisk(
 			try {
 				const remotePlugin = await getRemotePlugin(args, {
 					remotePlugin: appConfig.remotePlugin,
-					remoteOptions: appConfig.remoteOptions,
+					remoteOptions: remoteOptions,
 				});
 				if (!remotePlugin) return null;
-				await remotePlugin.uploadBuildCache(args, appConfig.remoteOptions);
+				await remotePlugin.uploadBuildCache(args, remoteOptions);
 			} catch (e) {
 				logger.log("💾 Build uploading failed!");
 			}

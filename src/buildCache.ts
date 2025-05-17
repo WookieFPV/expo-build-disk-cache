@@ -1,6 +1,6 @@
 import path from "node:path";
-import { getPackageJson } from "@expo/config";
 import type { ResolveBuildCacheProps } from "@expo/config";
+import { getPackageJson } from "@expo/config";
 import { getCacheDir } from "./cache/cacheDirectory.ts";
 
 export function getTagName({
@@ -29,13 +29,21 @@ export function getCachedAppPath({
 }: GetAppPath): string {
 	return path.join(
 		getCacheDir(cacheDir),
-		`${getTagName({
-			fingerprintHash,
-			projectRoot,
-			runOptions,
-		})}.${platform === "ios" ? "app" : "apk"}`,
+		getFileName({ runOptions, projectRoot, fingerprintHash, platform }),
 	);
 }
+
+export const getFileName = ({
+	fingerprintHash,
+	projectRoot,
+	runOptions,
+	platform,
+}: GetAppPath) =>
+	`${getTagName({
+		fingerprintHash,
+		projectRoot,
+		runOptions,
+	})}.${platform === "ios" ? "app" : "apk"}`;
 
 export function isDevClientBuild({
 	runOptions,

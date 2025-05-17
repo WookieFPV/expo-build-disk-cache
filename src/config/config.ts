@@ -72,7 +72,7 @@ const configSchema = z
 			.default(defaultConfig.cacheGcTimeDays)
 			.catch(handleZodError(defaultConfig.cacheGcTimeDays)),
 		remotePlugin: z.string().optional(),
-		remoteOptions: z.object().optional(),
+		remoteOptions: z.object().loose().optional(),
 	})
 	.catch(handleZodError(defaultConfig));
 
@@ -93,6 +93,10 @@ export function getConfig(appConfig?: Partial<Config>): Config {
 			...defaultConfig,
 			...appConfig,
 			...configResult?.config,
+			remoteOptions: {
+				...(appConfig?.remoteOptions ?? {}),
+				...(configResult?.config?.remoteOptions ?? {}),
+			},
 		});
 		if (!parseResult.success) {
 			console.log(
