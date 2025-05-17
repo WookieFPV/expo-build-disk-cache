@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.2...v0.4.3) (2025-05-17)
+
+
+### Bug Fixes
+
+* allow merging of remoteOptions from multiple Config Types (appConfig + Config File). Useful if you want some options stored in the appConfig and some privat (like tokens or cacheDir) ([0a4cc9d](https://github.com/WookieFPV/expo-build-disk-cache/commit/0a4cc9d0747c57bd9ca233745aaa89281bac754a))
+
 ## [0.4.2](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.1...v0.4.2) (2025-05-16)
 
 
