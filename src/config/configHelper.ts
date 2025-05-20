@@ -24,8 +24,8 @@ export const booleanLikeSchema = z
  */
 const regex = /^~(?=$|\/|\\)/;
 
-export const cleanupPath = (cacheDir: string | undefined) =>
-	cacheDir ? path.resolve(cacheDir.replace(regex, os.homedir())) : undefined;
+export const cleanupPath = (cacheDir: string) =>
+	path.resolve(cacheDir.replace(regex, os.homedir()));
 
 /**
  * Zod Error Handling

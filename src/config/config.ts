@@ -1,6 +1,9 @@
+import type { ResolveBuildCacheProps } from "@expo/config";
 import { cosmiconfigSync } from "cosmiconfig";
 import envPaths from "env-paths";
 import { z } from "zod";
+import { getCachedAppPath } from "../buildCache.ts";
+import { getDefaultCacheDir } from "../cache/cacheDirectory.ts";
 import { dedupeArray } from "../utils/dedupeArray.ts";
 import { xdgConfig } from "../utils/npmXdgBasedir.ts";
 import {
@@ -39,27 +42,30 @@ const searchPlaces = dedupeArray(
 );
 
 export type Config = {
-	cacheDir?: string;
+	cacheDir: string;
 	enable: boolean;
 	debug: boolean;
 	cacheGcTimeDays: number;
 	remotePlugin?: string;
 	remoteOptions?: Record<string, unknown>;
+	getPath: (args: ResolveBuildCacheProps) => string;
 };
 
 /**
  * Config Defaults
  */
 const defaultConfig = {
-	cacheDir: undefined,
+	cacheDir: getDefaultCacheDir(),
 	enable: true,
 	debug: false,
 	cacheGcTimeDays: 7,
+	getPath: (args: ResolveBuildCacheProps) =>
+		getCachedAppPath({ cacheDir: getDefaultCacheDir(), ...args }),
 } satisfies Config;
 
 const configSchema = z
 	.object({
-		cacheDir: z.string().optional().transform(cleanupPath),
+		cacheDir: z.string().optional().default(getDefaultCacheDir()).transform(cleanupPath),
 		enable: booleanLikeSchema
 			.optional()
 			.default(defaultConfig.enable)
@@ -74,6 +80,11 @@ const configSchema = z
 		remotePlugin: z.string().optional(),
 		remoteOptions: z.object().loose().optional(),
 	})
+	.transform((data) => ({
+		...data,
+		getPath: (args: ResolveBuildCacheProps) =>
+			getCachedAppPath({ ...args, cacheDir: data.cacheDir }),
+	}))
 	.catch(handleZodError(defaultConfig));
 
 let config: Config | null = null;
@@ -132,3 +143,15 @@ export function getConfig(appConfig?: Partial<Config> | undefined): Config {
 		return config;
 	}
 }
+
+/**
+ * Calls the baseFunction with the validated config object.
+ * Already handles the "enable" flag
+ */
+export const withConfig =
+	<T>(baseFunction: (args: T, config: Config) => Promise<string | null>) =>
+	(args: T, config: Partial<Config> | undefined) => {
+		const appConfig = getConfig(config);
+		if (!appConfig.enable) return Promise.resolve(null);
+		return baseFunction(args, appConfig);
+	};

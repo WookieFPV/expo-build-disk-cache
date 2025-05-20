@@ -3,28 +3,23 @@ import type {
 	ResolveBuildCacheProps,
 	UploadBuildCacheProps,
 } from "@expo/config";
-import { getCachedAppPath } from "./buildCache.ts";
 import { fileCache } from "./cache/fileCache.ts";
-import { type Config, getConfig } from "./config/config";
+import { type Config, withConfig } from "./config/config";
 import { logger } from "./logger.ts";
 import { getRemotePlugin } from "./remotePlugin/getRemotePlugin.ts";
 import { tryCatch } from "./utils/tryCatch.ts";
 
-async function readFromDisk(
-	args: ResolveBuildCacheProps,
-	appConfig: Partial<Config> | undefined,
-): Promise<string | null> {
+async function readFromDisk(args: ResolveBuildCacheProps, config: Config): Promise<string | null> {
 	try {
-		const { enable, cacheDir, cacheGcTimeDays, remoteOptions, remotePlugin } = getConfig(appConfig);
-		if (!enable) return null;
-		const cachedAppPath = getCachedAppPath({ ...args, cacheDir });
+		const { cacheGcTimeDays, remoteOptions, remotePlugin, getPath } = config;
+		const appPath = getPath(args);
 
-		const exists = await fileCache.has(cachedAppPath);
+		const exists = await fileCache.has(appPath);
 		if (exists) {
 			logger.log("💾 Using cached build from disk");
-			await fileCache.cleanup(cachedAppPath, cacheGcTimeDays, cachedAppPath);
-			await fileCache.printStats(cachedAppPath);
-			return cachedAppPath;
+			await fileCache.cleanup(appPath, cacheGcTimeDays, appPath);
+			await fileCache.printStats(appPath);
+			return appPath;
 		}
 		logger.log("💾 No cached build found on disk");
 		if (remotePlugin) {
@@ -33,16 +28,13 @@ async function readFromDisk(
 					remotePlugin,
 					remoteOptions,
 				});
-				if (!remotePluginProvider) return null;
 
-				const downloadPath = await remotePluginProvider.resolveBuildCache(args, remoteOptions);
+				const downloadPath = await remotePluginProvider?.resolveBuildCache(args, remoteOptions);
 				if (!downloadPath) return null;
 				// Copy to disk cache (to get properly cached)
-				const { error } = await tryCatch(
-					fileCache.write({ cachedAppPath, buildPath: downloadPath }),
-				);
+				const { error } = await tryCatch(fileCache.write({ appPath, buildPath: downloadPath }));
 				if (error) return null;
-				return cachedAppPath;
+				return appPath;
 			} catch (e) {
 				logger.log(`💾 Failed to download build: ${e}`);
 			}
@@ -54,42 +46,36 @@ async function readFromDisk(
 	}
 }
 
-async function writeToDisk(
-	args: UploadBuildCacheProps,
-	appConfig: Partial<Config> | undefined,
-): Promise<string | null> {
-	const { enable, cacheDir, cacheGcTimeDays, remoteOptions, remotePlugin } = getConfig(appConfig);
-	if (!enable) return null;
+async function writeToDisk(args: UploadBuildCacheProps, config: Config): Promise<string | null> {
+	const { cacheGcTimeDays, remoteOptions, remotePlugin, getPath } = config;
+	const appPath = getPath(args);
 
-	const cachedAppPath = getCachedAppPath({ ...args, cacheDir });
-
-	const exits = await fileCache.has(cachedAppPath);
+	const exits = await fileCache.has(appPath);
 	if (exits) {
 		logger.log("💾 Cached build was already saved");
-		return cachedAppPath;
+		return appPath;
 	}
 	try {
-		await fileCache.cleanup(cachedAppPath, cacheGcTimeDays, cachedAppPath);
-		await fileCache.write({ cachedAppPath, buildPath: args.buildPath });
+		await fileCache.cleanup(appPath, cacheGcTimeDays, appPath);
+		await fileCache.write({ appPath, buildPath: args.buildPath });
 
-		logger.log(`💾 Saved build output to disk: ${cachedAppPath}`);
-		await fileCache.printStats(cachedAppPath);
+		logger.log(`💾 Saved build output to disk: ${appPath}`);
+		await fileCache.printStats(appPath);
 		if (remotePlugin) {
 			try {
 				const remotePluginProvider = await getRemotePlugin(args, {
 					remotePlugin,
 					remoteOptions,
 				});
-				if (!remotePluginProvider) return null;
-				await remotePluginProvider.uploadBuildCache(args, remoteOptions);
+				await remotePluginProvider?.uploadBuildCache(args, remoteOptions);
 			} catch (e) {
 				logger.log("💾 Build uploading failed!");
 			}
 		}
-		return cachedAppPath;
+		return appPath;
 	} catch (error) {
 		logger.error(
-			`💾 Failed to save build output to disk at ${cachedAppPath}: ${
+			`💾 Failed to save build output to disk at ${appPath}: ${
 				error instanceof Error ? error.message : "Unknown error"
 			}`,
 		);
@@ -98,8 +84,8 @@ async function writeToDisk(
 }
 
 const DiskBuildCacheProvider = {
-	resolveBuildCache: readFromDisk,
-	uploadBuildCache: writeToDisk,
-} satisfies BuildCacheProviderPlugin<Config | undefined>;
+	resolveBuildCache: withConfig(readFromDisk),
+	uploadBuildCache: withConfig(writeToDisk),
+} satisfies BuildCacheProviderPlugin<Partial<Config> | undefined>;
 
 export default DiskBuildCacheProvider;
