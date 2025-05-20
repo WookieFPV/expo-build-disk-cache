@@ -1,7 +1,6 @@
 import path from "node:path";
 import type { ResolveBuildCacheProps } from "@expo/config";
 import { getPackageJson } from "@expo/config";
-import { getCacheDir } from "./cache/cacheDirectory.ts";
 
 export function getTagName({
 	fingerprintHash,
@@ -14,7 +13,7 @@ export function getTagName({
 }
 
 interface GetAppPath extends ResolveBuildCacheProps {
-	cacheDir?: string;
+	cacheDir: string;
 }
 
 export function getCachedAppPath({
@@ -25,12 +24,17 @@ export function getCachedAppPath({
 	cacheDir,
 }: GetAppPath): string {
 	return path.join(
-		getCacheDir(cacheDir),
+		path.resolve(cacheDir),
 		getFileName({ runOptions, projectRoot, fingerprintHash, platform }),
 	);
 }
 
-export const getFileName = ({ fingerprintHash, projectRoot, runOptions, platform }: GetAppPath) =>
+export const getFileName = ({
+	fingerprintHash,
+	projectRoot,
+	runOptions,
+	platform,
+}: ResolveBuildCacheProps) =>
 	`${getTagName({
 		fingerprintHash,
 		projectRoot,

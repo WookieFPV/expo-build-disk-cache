@@ -8,15 +8,15 @@ import { tryCatch } from "../utils/tryCatch.ts";
 import { readAppFiles } from "./filterFiles.ts";
 
 const cacheWrite = async ({
-	cachedAppPath,
+	appPath,
 	buildPath,
 }: {
-	cachedAppPath: string;
+	appPath: string;
 	buildPath: string;
 }): Promise<void> => {
-	const parentDir = path.dirname(cachedAppPath);
+	const parentDir = path.dirname(appPath);
 	await fs.mkdir(parentDir, { recursive: true });
-	await fs.cp(buildPath, cachedAppPath, { recursive: true });
+	await fs.cp(buildPath, appPath, { recursive: true });
 };
 
 const cacheHas = async (filePath: string): Promise<boolean> => {
