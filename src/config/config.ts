@@ -78,7 +78,7 @@ const configSchema = z
 
 let config: Config | null = null;
 
-export function getConfig(appConfig?: Partial<Config>): Config {
+export function getConfig(appConfig?: Partial<Config> | undefined): Config {
 	if (config && !appConfig) return config; // Return cached config if already loaded & no new appConfig is passed
 
 	const explorerSync = cosmiconfigSync(moduleName, {
@@ -100,9 +100,15 @@ export function getConfig(appConfig?: Partial<Config>): Config {
 		});
 		if (!parseResult.success) {
 			console.log(
-				"Config validation failed, ignore config files error:",
+				"Config validation failed, ignoring config files. error:",
 				parseResult.error,
 			);
+			if (configResult?.filepath)
+				console.log(
+					`Used config file: ${configResult?.filepath} with content: ${JSON.stringify(configResult?.config)}, appConfig: ${JSON.stringify(appConfig)}`,
+				);
+			if (appConfig)
+				console.log(`Used appConfig: ${JSON.stringify(appConfig)}`);
 			return defaultConfig;
 		}
 		config = parseResult.data;

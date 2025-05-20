@@ -32,6 +32,28 @@ describe("Disk Cache Provider", () => {
 		expect(result).toBeNull();
 	});
 
+	it("Run resolve without crashing when args are undefined", async () => {
+		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
+		const args = undefined;
+
+		const result = await DiskBuildCacheProvider.resolveBuildCache(
+			options,
+			args,
+		);
+		expect(result).toBeNull();
+	});
+
+	it("Run upload without crashing when args are undefined", async () => {
+		const fingerprintHash = crypto.randomUUID();
+		const buildPath = await mockAppBuild(fingerprintHash);
+		const options = { ...baseOptions, fingerprintHash, buildPath };
+		const args = undefined;
+
+		const result = await DiskBuildCacheProvider.uploadBuildCache(options, args);
+		expect(result).toBeString();
+		expect(result?.endsWith(`/fingerprint.${fingerprintHash}.apk`)).toBeTrue();
+	});
+
 	it("save and read builds to disk", async () => {
 		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
 		const args = {};

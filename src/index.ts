@@ -12,10 +12,10 @@ import { tryCatch } from "./utils/tryCatch.ts";
 
 async function readFromDisk(
 	args: ResolveBuildCacheProps,
-	appConfig: Partial<Config>,
+	appConfig: Partial<Config> | undefined,
 ): Promise<string | null> {
 	try {
-		const { enable, cacheDir, cacheGcTimeDays, remoteOptions } =
+		const { enable, cacheDir, cacheGcTimeDays, remoteOptions, remotePlugin } =
 			getConfig(appConfig);
 		if (!enable) return null;
 		const cachedAppPath = getCachedAppPath({ ...args, cacheDir });
@@ -28,15 +28,15 @@ async function readFromDisk(
 			return cachedAppPath;
 		}
 		logger.log("💾 No cached build found on disk");
-		if (appConfig.remotePlugin) {
+		if (remotePlugin) {
 			try {
-				const remotePlugin = await getRemotePlugin(args, {
-					remotePlugin: appConfig.remotePlugin,
+				const remotePluginProvider = await getRemotePlugin(args, {
+					remotePlugin,
 					remoteOptions,
 				});
-				if (!remotePlugin) return null;
+				if (!remotePluginProvider) return null;
 
-				const downloadPath = await remotePlugin.resolveBuildCache(
+				const downloadPath = await remotePluginProvider.resolveBuildCache(
 					args,
 					remoteOptions,
 				);
@@ -60,9 +60,9 @@ async function readFromDisk(
 
 async function writeToDisk(
 	args: UploadBuildCacheProps,
-	appConfig: Partial<Config>,
+	appConfig: Partial<Config> | undefined,
 ): Promise<string | null> {
-	const { enable, cacheDir, cacheGcTimeDays, remoteOptions } =
+	const { enable, cacheDir, cacheGcTimeDays, remoteOptions, remotePlugin } =
 		getConfig(appConfig);
 	if (!enable) return null;
 
@@ -79,14 +79,14 @@ async function writeToDisk(
 
 		logger.log(`💾 Saved build output to disk: ${cachedAppPath}`);
 		await fileCache.printStats(cachedAppPath);
-		if (appConfig.remotePlugin) {
+		if (remotePlugin) {
 			try {
-				const remotePlugin = await getRemotePlugin(args, {
-					remotePlugin: appConfig.remotePlugin,
-					remoteOptions: remoteOptions,
+				const remotePluginProvider = await getRemotePlugin(args, {
+					remotePlugin,
+					remoteOptions,
 				});
-				if (!remotePlugin) return null;
-				await remotePlugin.uploadBuildCache(args, remoteOptions);
+				if (!remotePluginProvider) return null;
+				await remotePluginProvider.uploadBuildCache(args, remoteOptions);
 			} catch (e) {
 				logger.log("💾 Build uploading failed!");
 			}
@@ -105,6 +105,6 @@ async function writeToDisk(
 const DiskBuildCacheProvider = {
 	resolveBuildCache: readFromDisk,
 	uploadBuildCache: writeToDisk,
-} satisfies BuildCacheProviderPlugin<Config>;
+} satisfies BuildCacheProviderPlugin<Config | undefined>;
 
 export default DiskBuildCacheProvider;
