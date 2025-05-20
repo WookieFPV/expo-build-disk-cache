@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.4](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.3...v0.4.4) (2025-05-20)
+
+
+### Bug Fixes
+
+* warning that occurred if no options was set. ([da21361](https://github.com/WookieFPV/expo-build-disk-cache/commit/da213611f4939204fae3cd291c7e395281f1cbd6))
+
 ## [0.4.3](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.2...v0.4.3) (2025-05-17)
 
 
