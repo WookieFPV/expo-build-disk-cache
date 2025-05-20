@@ -1,18 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import os from "node:os";
-import path from "node:path";
 import type { ResolveBuildCacheProps } from "@expo/config";
-import { file } from "bun";
-import env from "env-paths";
 import DiskBuildCacheProvider from "../index.ts";
-
-const mockAppBuild = async (fingerprintHash: string) => {
-	const tmpDir = env("expo-build-disk-cache", { suffix: "tests" }).temp;
-	const appFile = file(path.join(tmpDir, `${fingerprintHash}.apk`));
-	await appFile.write("Placeholder for real apk file");
-	if (!appFile.name) throw new Error("mockBuild failed");
-	return appFile.name;
-};
+import { mockAppBuild } from "./mockAppBuild.ts";
 
 const baseOptions: Omit<ResolveBuildCacheProps, "fingerprintHash"> = {
 	platform: "android",
@@ -20,24 +10,8 @@ const baseOptions: Omit<ResolveBuildCacheProps, "fingerprintHash"> = {
 	runOptions: {},
 };
 
-describe("Disk Cache Provider", () => {
-	it("Run without crashing", async () => {
-		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
-		const args = { cacheDir: "~/my-cache-dir/" };
-
-		const result = await DiskBuildCacheProvider.resolveBuildCache(options, args);
-		expect(result).toBeNull();
-	});
-
-	it("Run resolve without crashing when args are undefined", async () => {
-		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
-		const args = undefined;
-
-		const result = await DiskBuildCacheProvider.resolveBuildCache(options, args);
-		expect(result).toBeNull();
-	});
-
-	it("Run upload without crashing when args are undefined", async () => {
+describe("DiskBuildCacheProvider", () => {
+	it("should upload build cache without crashing when args are undefined", async () => {
 		const fingerprintHash = crypto.randomUUID();
 		const buildPath = await mockAppBuild(fingerprintHash);
 		const options = { ...baseOptions, fingerprintHash, buildPath };
@@ -48,7 +22,23 @@ describe("Disk Cache Provider", () => {
 		expect(result?.endsWith(`/fingerprint.${fingerprintHash}.apk`)).toBeTrue();
 	});
 
-	it("save and read builds to disk", async () => {
+	it("should resolve build cache without crashing when args are defined", async () => {
+		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
+		const args = { cacheDir: "~/my-cache-dir/" };
+
+		const result = await DiskBuildCacheProvider.resolveBuildCache(options, args);
+		expect(result).toBeNull();
+	});
+
+	it("should resolve build cache without crashing when args are undefined", async () => {
+		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
+		const args = undefined;
+
+		const result = await DiskBuildCacheProvider.resolveBuildCache(options, args);
+		expect(result).toBeNull();
+	});
+
+	it("should save and resolve build caches to/from disk", async () => {
 		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
 		const args = {};
 
@@ -67,7 +57,7 @@ describe("Disk Cache Provider", () => {
 		expect(resultRead2).toBeString();
 	});
 
-	it("should use cacheDir Config value (cacheDir)", async () => {
+	it("should use cacheDir from args when resolving and uploading build cache", async () => {
 		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
 		const args = { cacheDir: "~/my-cache-dir/" };
 
