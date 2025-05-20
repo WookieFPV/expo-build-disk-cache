@@ -53,10 +53,7 @@ export const getDirectoryStats = async (
 				totalSize += stats.size;
 				fileCountSet.add(file);
 			} else if (stats.isDirectory()) {
-				const { totalSize: subDirSize } = await getDirectoryStats(
-					filePath,
-					() => true,
-				);
+				const { totalSize: subDirSize } = await getDirectoryStats(filePath, () => true);
 				totalSize += subDirSize;
 				fileCountSet.add(file);
 			}

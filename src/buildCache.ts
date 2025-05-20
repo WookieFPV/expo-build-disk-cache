@@ -7,10 +7,7 @@ export function getTagName({
 	fingerprintHash,
 	projectRoot,
 	runOptions,
-}: Pick<
-	ResolveBuildCacheProps,
-	"fingerprintHash" | "projectRoot" | "runOptions"
->): string {
+}: Pick<ResolveBuildCacheProps, "fingerprintHash" | "projectRoot" | "runOptions">): string {
 	const isDevClient = isDevClientBuild({ projectRoot, runOptions });
 
 	return `fingerprint.${fingerprintHash}${isDevClient ? ".dev-client" : ""}`;
@@ -33,12 +30,7 @@ export function getCachedAppPath({
 	);
 }
 
-export const getFileName = ({
-	fingerprintHash,
-	projectRoot,
-	runOptions,
-	platform,
-}: GetAppPath) =>
+export const getFileName = ({ fingerprintHash, projectRoot, runOptions, platform }: GetAppPath) =>
 	`${getTagName({
 		fingerprintHash,
 		projectRoot,
@@ -56,10 +48,7 @@ export function isDevClientBuild({
 	if ("variant" in runOptions && runOptions["variant"] !== undefined) {
 		return runOptions["variant"] === "debug";
 	}
-	if (
-		"configuration" in runOptions &&
-		runOptions["configuration"] !== undefined
-	) {
+	if ("configuration" in runOptions && runOptions["configuration"] !== undefined) {
 		return runOptions["configuration"] === "Debug";
 	}
 
@@ -67,9 +56,6 @@ export function isDevClientBuild({
 }
 
 export function hasDirectDevClientDependency(projectRoot: string): boolean {
-	const { dependencies = {}, devDependencies = {} } =
-		getPackageJson(projectRoot);
-	return (
-		!!dependencies["expo-dev-client"] || !!devDependencies["expo-dev-client"]
-	);
+	const { dependencies = {}, devDependencies = {} } = getPackageJson(projectRoot);
+	return !!dependencies["expo-dev-client"] || !!devDependencies["expo-dev-client"];
 }

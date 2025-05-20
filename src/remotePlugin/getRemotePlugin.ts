@@ -21,10 +21,7 @@ export const getRemotePlugin = async (
 			: { plugin: appConfig.remotePlugin, options: appConfig.remoteOptions };
 
 	const { data, error } = await tryCatch<BuildCacheProvider>(
-		expoCacheProviderUtils.resolveBuildCacheProvider(
-			remotePluginConfig,
-			args.projectRoot,
-		),
+		expoCacheProviderUtils.resolveBuildCacheProvider(remotePluginConfig, args.projectRoot),
 	);
 	const plugin = data?.plugin;
 	if (!plugin || error) {
@@ -33,13 +30,9 @@ export const getRemotePlugin = async (
 	}
 	return {
 		resolveBuildCache:
-			"resolveBuildCache" in plugin
-				? plugin.resolveBuildCache
-				: plugin.resolveRemoteBuildCache,
+			"resolveBuildCache" in plugin ? plugin.resolveBuildCache : plugin.resolveRemoteBuildCache,
 		uploadBuildCache:
-			"uploadBuildCache" in plugin
-				? plugin.uploadBuildCache
-				: plugin.uploadRemoteBuildCache,
+			"uploadBuildCache" in plugin ? plugin.uploadBuildCache : plugin.uploadRemoteBuildCache,
 		calculateFingerprintHash: plugin.calculateFingerprintHash,
 	} satisfies BuildCacheProviderPlugin<unknown>;
 };
