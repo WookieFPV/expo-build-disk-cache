@@ -11,5 +11,4 @@ const homeDirectory = os.homedir();
 const { env } = process;
 
 export const xdgConfig =
-	env["XDG_CONFIG_HOME"] ||
-	(homeDirectory ? path.join(homeDirectory, ".config") : undefined);
+	env["XDG_CONFIG_HOME"] || (homeDirectory ? path.join(homeDirectory, ".config") : undefined);

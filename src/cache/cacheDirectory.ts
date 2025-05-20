@@ -6,8 +6,6 @@ export const getCacheDir = (cacheDir?: string): string => {
 	return getBuildRunCacheDirectoryPath();
 };
 
-const getBuildRunCacheDirectoryPath = (): string =>
-	path.join(getTmpDirectory(), "build-run-cache");
+const getBuildRunCacheDirectoryPath = (): string => path.join(getTmpDirectory(), "build-run-cache");
 
-const getTmpDirectory = (): string =>
-	envPaths("expo-build-disk-cache", { suffix: "" }).temp;
+const getTmpDirectory = (): string => envPaths("expo-build-disk-cache", { suffix: "" }).temp;

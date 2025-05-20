@@ -25,10 +25,7 @@ describe("Disk Cache Provider", () => {
 		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
 		const args = { cacheDir: "~/my-cache-dir/" };
 
-		const result = await DiskBuildCacheProvider.resolveBuildCache(
-			options,
-			args,
-		);
+		const result = await DiskBuildCacheProvider.resolveBuildCache(options, args);
 		expect(result).toBeNull();
 	});
 
@@ -36,10 +33,7 @@ describe("Disk Cache Provider", () => {
 		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
 		const args = undefined;
 
-		const result = await DiskBuildCacheProvider.resolveBuildCache(
-			options,
-			args,
-		);
+		const result = await DiskBuildCacheProvider.resolveBuildCache(options, args);
 		expect(result).toBeNull();
 	});
 
@@ -58,10 +52,7 @@ describe("Disk Cache Provider", () => {
 		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
 		const args = {};
 
-		const resultRead1 = await DiskBuildCacheProvider.resolveBuildCache(
-			options,
-			args,
-		);
+		const resultRead1 = await DiskBuildCacheProvider.resolveBuildCache(options, args);
 		expect(resultRead1).toBeNull();
 
 		const buildPath = await mockAppBuild(options.fingerprintHash);
@@ -72,10 +63,7 @@ describe("Disk Cache Provider", () => {
 		);
 		expect(resultWrite).toBeString();
 
-		const resultRead2 = await DiskBuildCacheProvider.resolveBuildCache(
-			options,
-			args,
-		);
+		const resultRead2 = await DiskBuildCacheProvider.resolveBuildCache(options, args);
 		expect(resultRead2).toBeString();
 	});
 
@@ -83,10 +71,7 @@ describe("Disk Cache Provider", () => {
 		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
 		const args = { cacheDir: "~/my-cache-dir/" };
 
-		const resultRead1 = await DiskBuildCacheProvider.resolveBuildCache(
-			options,
-			args,
-		);
+		const resultRead1 = await DiskBuildCacheProvider.resolveBuildCache(options, args);
 		expect(resultRead1).toBeNull();
 
 		// Create a file to simulate a build output

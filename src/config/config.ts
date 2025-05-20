@@ -99,36 +99,27 @@ export function getConfig(appConfig?: Partial<Config> | undefined): Config {
 			},
 		});
 		if (!parseResult.success) {
-			console.log(
-				"Config validation failed, ignoring config files. error:",
-				parseResult.error,
-			);
+			console.log("Config validation failed, ignoring config files. error:", parseResult.error);
 			if (configResult?.filepath)
 				console.log(
 					`Used config file: ${configResult?.filepath} with content: ${JSON.stringify(configResult?.config)}, appConfig: ${JSON.stringify(appConfig)}`,
 				);
-			if (appConfig)
-				console.log(`Used appConfig: ${JSON.stringify(appConfig)}`);
+			if (appConfig) console.log(`Used appConfig: ${JSON.stringify(appConfig)}`);
 			return defaultConfig;
 		}
 		config = parseResult.data;
 
 		if (config.debug) {
 			console.log("expo-build-disk-cache config:");
-			console.log(
-				"config files are searched starting from current directory up to home directory",
-			);
-			console.log(
-				`Searched Config File Locations: ${JSON.stringify(searchPlaces, null, 2)}`,
-			);
+			console.log("config files are searched starting from current directory up to home directory");
+			console.log(`Searched Config File Locations: ${JSON.stringify(searchPlaces, null, 2)}`);
 			const configSources: Array<{ source: string; config: unknown }> = [];
 			if (configResult)
 				configSources.push({
 					source: configResult.filepath,
 					config: configResult.config,
 				});
-			if (appConfig)
-				configSources.push({ source: "appConfig", config: appConfig });
+			if (appConfig) configSources.push({ source: "appConfig", config: appConfig });
 
 			console.log(`Config based on: ${JSON.stringify(configSources, null, 2)}`);
 			console.log(`Merged config: ${JSON.stringify(config, null, 2)}`);

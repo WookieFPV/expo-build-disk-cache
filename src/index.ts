@@ -15,8 +15,7 @@ async function readFromDisk(
 	appConfig: Partial<Config> | undefined,
 ): Promise<string | null> {
 	try {
-		const { enable, cacheDir, cacheGcTimeDays, remoteOptions, remotePlugin } =
-			getConfig(appConfig);
+		const { enable, cacheDir, cacheGcTimeDays, remoteOptions, remotePlugin } = getConfig(appConfig);
 		if (!enable) return null;
 		const cachedAppPath = getCachedAppPath({ ...args, cacheDir });
 
@@ -36,10 +35,7 @@ async function readFromDisk(
 				});
 				if (!remotePluginProvider) return null;
 
-				const downloadPath = await remotePluginProvider.resolveBuildCache(
-					args,
-					remoteOptions,
-				);
+				const downloadPath = await remotePluginProvider.resolveBuildCache(args, remoteOptions);
 				if (!downloadPath) return null;
 				// Copy to disk cache (to get properly cached)
 				const { error } = await tryCatch(
@@ -62,8 +58,7 @@ async function writeToDisk(
 	args: UploadBuildCacheProps,
 	appConfig: Partial<Config> | undefined,
 ): Promise<string | null> {
-	const { enable, cacheDir, cacheGcTimeDays, remoteOptions, remotePlugin } =
-		getConfig(appConfig);
+	const { enable, cacheDir, cacheGcTimeDays, remoteOptions, remotePlugin } = getConfig(appConfig);
 	if (!enable) return null;
 
 	const cachedAppPath = getCachedAppPath({ ...args, cacheDir });
