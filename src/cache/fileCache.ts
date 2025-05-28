@@ -17,8 +17,7 @@ export const fileCacheFactory = (
 	const appPath = getPath(args);
 
 	const cacheWrite = async (buildPath: string): Promise<void> => {
-		const parentDir = path.dirname(appPath);
-		await fs.mkdir(parentDir, { recursive: true });
+		await fs.mkdir(path.dirname(appPath), { recursive: true });
 		await fs.cp(buildPath, appPath, { recursive: true });
 	};
 
