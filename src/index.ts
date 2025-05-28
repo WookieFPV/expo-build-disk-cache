@@ -17,7 +17,7 @@ async function readFromDisk(args: ResolveBuildCacheProps, config: Config): Promi
 		if (exists) {
 			logger.log("💾 Using cached build from disk");
 			await fileCache.cleanup();
-			await fileCache.printStats();
+			if (config.debug) await fileCache.printStats();
 			return fileCache.getPath();
 		}
 		logger.log("💾 No cached build found on disk");
