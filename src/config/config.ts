@@ -143,15 +143,3 @@ export function getConfig(appConfig?: Partial<Config> | undefined): Config {
 		return config;
 	}
 }
-
-/**
- * Calls the baseFunction with the validated config object.
- * Already handles the "enable" flag
- */
-export const withConfig =
-	<T>(baseFunction: (args: T, config: Config) => Promise<string | null>) =>
-	(args: T, config: Partial<Config> | undefined) => {
-		const appConfig = getConfig(config);
-		if (!appConfig.enable) return Promise.resolve(null);
-		return baseFunction(args, appConfig);
-	};

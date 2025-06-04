@@ -4,7 +4,8 @@ import type {
 	UploadBuildCacheProps,
 } from "@expo/config";
 import { fileCacheFactory } from "./cache/fileCache.ts";
-import { type Config, withConfig } from "./config/config";
+import { type Config, getConfig } from "./config/config";
+import { withConfig } from "./config/withConfig.ts";
 import { logger } from "./logger.ts";
 import { getRemotePlugin } from "./remotePlugin/getRemotePlugin.ts";
 import { tryCatch } from "./utils/tryCatch.ts";
@@ -84,8 +85,8 @@ async function writeToDisk(args: UploadBuildCacheProps, config: Config): Promise
 }
 
 const DiskBuildCacheProvider = {
-	resolveBuildCache: withConfig(readFromDisk),
-	uploadBuildCache: withConfig(writeToDisk),
+	resolveBuildCache: withConfig(readFromDisk, getConfig),
+	uploadBuildCache: withConfig(writeToDisk, getConfig),
 } satisfies BuildCacheProviderPlugin<Partial<Config> | undefined>;
 
 export default DiskBuildCacheProvider;
