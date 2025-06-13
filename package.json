@@ -35,11 +35,11 @@
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@total-typescript/ts-reset": "0.6.1",
-		"@tsconfig/bun": "1.0.7",
+		"@tsconfig/bun": "1.0.8",
 		"@tsconfig/node18": "18.2.4",
-		"@types/bun": "1.2.13",
-		"lefthook": "1.11.12",
-		"tsup": "8.4.0",
+		"@types/bun": "1.2.16",
+		"lefthook": "1.11.13",
+		"tsup": "8.5.0",
 		"typescript": "5.8.3"
 	},
 	"engines": {
