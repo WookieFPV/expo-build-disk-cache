@@ -7,11 +7,13 @@ import { getDefaultCacheDir } from "../cache/cacheDirectory.ts";
 import { dedupeArray } from "../utils/dedupeArray.ts";
 import { xdgConfig } from "../utils/npmXdgBasedir.ts";
 import {
-	NumberLikeSchema,
+	type BooleanLike,
+	type NumberLike,
 	booleanLikeSchema,
 	cleanupPath,
 	configFilePaths,
 	handleZodError,
+	numberLikeSchema,
 } from "./configHelper.ts";
 
 const moduleName = "disk-cache";
@@ -40,6 +42,15 @@ const searchPlaces = dedupeArray(
 		configFilePaths(".config", moduleName),
 	].flat(),
 );
+
+export type ConfigInput = {
+	cacheDir?: string;
+	enable?: BooleanLike;
+	debug?: BooleanLike;
+	cacheGcTimeDays?: NumberLike;
+	remotePlugin?: string;
+	remoteOptions?: Record<string, unknown>;
+};
 
 export type Config = {
 	cacheDir: string;
@@ -74,7 +85,8 @@ const configSchema = z
 			.optional()
 			.default(defaultConfig.debug)
 			.catch(handleZodError(defaultConfig.debug)),
-		cacheGcTimeDays: NumberLikeSchema.optional()
+		cacheGcTimeDays: numberLikeSchema
+			.optional()
 			.default(defaultConfig.cacheGcTimeDays)
 			.catch(handleZodError(defaultConfig.cacheGcTimeDays)),
 		remotePlugin: z.string().optional(),
@@ -89,7 +101,7 @@ const configSchema = z
 
 let config: Config | null = null;
 
-export function getConfig(appConfig?: Partial<Config> | undefined): Config {
+export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config {
 	if (config && !appConfig) return config; // Return cached config if already loaded & no new appConfig is passed
 
 	const explorerSync = cosmiconfigSync(moduleName, {

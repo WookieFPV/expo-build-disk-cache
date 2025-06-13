@@ -30,17 +30,17 @@ Can be combined with remote caching providers (like [**eas-build-cache-provider*
 
 | Option            | Description                                            | Default         |
 |-------------------|--------------------------------------------------------|-----------------|
-| `cacheDir`        | Cache directory path                                   | System temp dir |
-| `cacheGcTimeDays` | Days before unused files get deleted (`-1` to disable) | 7               |
-| `debug`           | Verbose logging                                        | false           |
-| `enable`          | Disable plugin if false                                | true            |
-| `remotePlugin`    | Remote cache provider (e.g. `eas`)                     | N/a             |
-| `remoteOptions`   | Options for remote build cache provider                | N/a             |
+| `cacheDir`        | Path to the cache directory                            | System temp dir |
+| `cacheGcTimeDays` | Days before unused files are deleted (`-1` disables)   | 7               |
+| `debug`           | Enable verbose logging                                 | false           |
+| `enable`          | Enable or disable the plugin                           | true            |
+| `remotePlugin`    | Remote cache provider (e.g., `eas`)                    | N/a             |
+| `remoteOptions`   | Options for the remote build cache provider            | N/a             |
 
-You can configure via:
-- **expo app config** (`app.json`/`app.config.js`/`app.config.ts`)
-- **disk-cache.json** (project or home dir, for . This allows per-machine customization without affecting the fingerprint and can be added to `.gitignore`)
-- **package.json** (under `disk-cache` key)
+You can configure options via:
+- **Expo app config** (`app.json`, `app.config.js`, or `app.config.ts`)
+- **disk-cache.json** (in the project or home directory). This allows per-machine customization without affecting the build fingerprint and can be added to `.gitignore`.
+- **package.json** (under the `disk-cache` key)
 
 **cacheDir recommendations:**\
 By default, the cache is stored in the system temporary directory, which may be cleared by the OS on reboot. For a more persistent cache, consider these alternatives (the plugin will automatically clean up old files after `cacheGcTimeDays` [default: 7 days after last access]):

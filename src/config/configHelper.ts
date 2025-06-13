@@ -2,8 +2,10 @@ import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
 
-export const NumberLikeSchema = z.coerce.number();
+export type NumberLike = boolean | string | number;
+export const numberLikeSchema = z.coerce.number();
 
+export type BooleanLike = boolean | string | number;
 export const booleanLikeSchema = z
 	.transform((value) => {
 		if (typeof value === "string") {

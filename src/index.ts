@@ -4,7 +4,7 @@ import type {
 	UploadBuildCacheProps,
 } from "@expo/config";
 import { fileCacheFactory } from "./cache/fileCache.ts";
-import { type Config, getConfig } from "./config/config";
+import { type Config, type ConfigInput as DiskCacheConfig, getConfig } from "./config/config";
 import { withConfig } from "./config/withConfig.ts";
 import { logger } from "./logger.ts";
 import { getRemotePlugin } from "./remotePlugin/getRemotePlugin.ts";
@@ -91,9 +91,9 @@ const DiskBuildCacheProvider = {
 
 export default DiskBuildCacheProvider;
 
-export type { Config as DiskCacheConfig };
+export type { DiskCacheConfig };
 
 export type DiskCacheProvider = {
 	plugin: "expo-build-disk-cache";
-	options?: Partial<Config>;
+	options?: Partial<DiskCacheConfig>;
 };
