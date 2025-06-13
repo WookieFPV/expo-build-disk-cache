@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.6](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.5...v0.4.6) (2025-06-13)
+
+
+### Bug Fixes
+
+* improve exported Config types (to exactly match what's allowed) ([2ad5b6e](https://github.com/WookieFPV/expo-build-disk-cache/commit/2ad5b6ebd2fe139c719a1dd016fc7e22e372b5f3))
+
 ## [0.4.5](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.4...v0.4.5) (2025-06-13)
 
 
