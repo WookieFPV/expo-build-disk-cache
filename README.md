@@ -1,116 +1,67 @@
 # expo-build-disk-cache [![npm][npm-image]][npm-url] ![npm][npm-dl-stats]
 
-> **Warning**: This plugin requires Expo SDK 53 or higher to work
+🚀 Drastically speed up your npx expo run:[android | ios] builds!\
+This plugin adds local disk caching for Expo builds.
+If a matching cached build exists, it launches instantly, letting you skip the often time-consuming compilation step entirely.\
+Can be combined with remote caching providers (like [**eas-build-cache-provider**](https://docs.expo.dev/guides/cache-builds-remotely/#using-eas-as-a-build-provider)).
 
-🚀 Drastically speed up your npx expo run:[android|ios] builds!\
-This plugin adds local disk caching for Expo builds (and the EAS Cache Provider).
-If a matching cached build exists, it launches instantly, letting you skip the often time-consuming compilation step entirely.
-Uses Expo fingerprint (a hash of your native project and dependencies) for intelligent invalidation, building fresh only when needed.
-Can be combined with remote caching providers like EAS (this will cache downloaded builds).
+> If you want remote caching using S3 storage, consider using the [**build-cache-s3**](https://github.com/WookieFPV/build-cache-s3) plugin.
 
-## Table of Contents
+## Quick Start
 
-- [Getting Started](#getting-started)
-- [Optional Configuration](#optional-configuration)
-- [Combine with EAS Build Cache Provider](#combine-with-eas-build-cache-provider-recommended-setup)
-- [Using a Cloud-Synced Folder for Cache (Not Recommended)](#using-a-cloud-synced-folder-for-cache-not-recommended)
-- [Acknowledgments](#acknowledgments)
-
-### Getting Started
-
-1. **Install it as a dev dependency**:
-
-   ```bash
-   npm install --save-dev expo-build-disk-cache
-   ```
-
-2. **Add it to your app config (still experimental)**:
-
-   ```json
-   {
-     "experiments": {
-       "buildCacheProvider": {
-         "plugin": "expo-build-disk-cache"
-       }
-     }
-   }
-   ```
-
-### Optional Configuration
-
-You can configure the plugin in a few ways:
-
-- **Option A: In App Config**  
-  Add the following to your `app.json` or `app.config.js`:
-  [HINT:] Keep in mind any change here will result in a different fingerprint -> needs rebuilding
-
+- **Requires Expo SDK 53+**
+- Install:
+  ```bash
+  npm install --save-dev expo-build-disk-cache
+  ```
+- Add to your app config:
   ```json
   {
     "experiments": {
       "buildCacheProvider": {
-        "plugin": "expo-build-disk-cache",
-        "options": {
-          "cacheDir": "~/expo-build-disk-cache/"
-        }
+        "plugin": "expo-build-disk-cache"
       }
     }
   }
   ```
+- `expo run:android` or `expo run:ios` will now use the cache.
 
-- **Option B: In a Separate Config File**  
-  Create a `disk-cache.json` file in your project or home directory. This allows per-machine customization without affecting the fingerprint and can be added to `.gitignore`. The config file merges with the app config and overrides conflicting settings. Also supports the platform specific config folder by using [env-paths](https://github.com/sindresorhus/env-paths?tab=readme-ov-file#pathsconfig).
+## Configuration (optional)
 
-  ```json
-  {
-    "cacheDir": "~/expo-build-disk-cache/",
-    "cacheGcTimeDays": 21
-  }
-  ```
+| Option            | Description                                            | Default         |
+|-------------------|--------------------------------------------------------|-----------------|
+| `cacheDir`        | Cache directory path                                   | System temp dir |
+| `cacheGcTimeDays` | Days before unused files get deleted (`-1` to disable) | 7               |
+| `debug`           | Verbose logging                                        | false           |
+| `enable`          | Disable plugin if false                                | true            |
+| `remotePlugin`    | Remote cache provider (e.g. `eas`)                     | N/a             |
+| `remoteOptions`   | Options for remote build cache provider                | N/a             |
 
-- **Option C: In package.json**
-  ```json
-  {
-    "disk-cache": {
-      "cacheDir": "~/expo-build-disk-cache/",
-      "cacheGcTimeDays": 21
-    }
-  }
-  ```
+You can configure via:
+- **expo app config** (`app.json`/`app.config.js`/`app.config.ts`)
+- **disk-cache.json** (project or home dir, for . This allows per-machine customization without affecting the fingerprint and can be added to `.gitignore`)
+- **package.json** (under `disk-cache` key)
 
-### Default Configuration
+**cacheDir recommendations:**\
+By default, the cache is stored in the system temporary directory, which may be cleared by the OS on reboot. For a more persistent cache, consider these alternatives (the plugin will automatically clean up old files after `cacheGcTimeDays` [default: 7 days after last access]):
+- Use a directory in your home folder, such as `~/.expo-build-cache`, to share the cache across projects and retain it between reboots.
+- Use `node_modules/.expo-build-disk-cache` for a project-specific cache that is easy to remove with `npm run clean` or similar scripts.
 
-- `cacheDir`: Defaults to a temporary directory in the system's temp folder. (good alternative: `~/expo-build-disk-cache/`).
-- `remotePlugin`: [Optional] Set to `eas` to use the EAS remote build cache provider. You can also any other build cache provider.
-- `remoteOptions`: [Optional] Options for the remote build cache provider. This is a object that will be passed to the remote build cache provider. (Not needed for eas but other providers may need it)
-- `cacheGcTimeDays`: Defaults to 7 days; files will be deleted if not used within this period. Set to `-1` to prevent deletion.
-- `debug`: Defaults to `false`. Set to `true` for verbose logging
-- `enable`: Defaults to `true`. Set to `false` to disable the plugin.
+### Combine with EAS Build Cache Provider
 
-For a complete list of available configuration options, refer to the [source configuration file](src/config/config.ts).
-
-### Combine with EAS Build Cache Provider (Recommended Setup)
-
-Add `remotePlugin` to your configuration to use the EAS remote build cache provider. This will combine both Providers. This caches downloaded builds from EAS and local builds. This is the recommended way to use this plugin.
-
-  ```json
-  {
-    "experiments": {
-      "buildCacheProvider": {
-        "plugin": "expo-build-disk-cache",
-        "options": {
-          "remotePlugin": "eas",
-          "cacheDir": "~/expo-build-disk-cache/"
-        }
+Add `remotePlugin` to your configuration to use the EAS remote build cache provider.
+```json
+{
+  "experiments": {
+    "buildCacheProvider": {
+      "plugin": "expo-build-disk-cache",
+      "options": {
+        "remotePlugin": "eas"
       }
     }
   }
-  ```
-
-### Using a Cloud-Synced Folder for Cache (Not Recommended)
-
-To share the build cache across multiple machines, set `cacheDir` to a folder synced with a cloud service (e.g., Dropbox, Google Drive, OneDrive). This is beneficial for small teams or individuals who want to speed up their builds without setting up a dedicated server. Larger teams or organizations may want to consider a solution with server for caching.
-
----
+}
+```
 
 ## Acknowledgments
 

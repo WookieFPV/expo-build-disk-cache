@@ -122,7 +122,6 @@ export function getConfig(appConfig?: Partial<Config> | undefined): Config {
 
 		if (config.debug) {
 			console.log("expo-build-disk-cache config:");
-			console.log("config files are searched starting from current directory up to home directory");
 			console.log(`Searched Config File Locations: ${JSON.stringify(searchPlaces, null, 2)}`);
 			const configSources: Array<{ source: string; config: unknown }> = [];
 			if (configResult)
@@ -133,7 +132,7 @@ export function getConfig(appConfig?: Partial<Config> | undefined): Config {
 			if (appConfig) configSources.push({ source: "appConfig", config: appConfig });
 
 			console.log(`Config based on: ${JSON.stringify(configSources, null, 2)}`);
-			console.log(`Merged config: ${JSON.stringify(config, null, 2)}`);
+			console.log(`Final config: ${JSON.stringify(config, null, 2)}`);
 		}
 
 		return config ?? defaultConfig;

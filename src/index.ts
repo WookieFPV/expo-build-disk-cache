@@ -90,3 +90,10 @@ const DiskBuildCacheProvider = {
 } satisfies BuildCacheProviderPlugin<Partial<Config> | undefined>;
 
 export default DiskBuildCacheProvider;
+
+export type { Config as DiskCacheConfig };
+
+export type DiskCacheProvider = {
+	plugin: "expo-build-disk-cache";
+	options?: Partial<Config>;
+};
