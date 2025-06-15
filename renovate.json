@@ -11,13 +11,16 @@
 			"matchDepTypes": ["devDependencies"],
 			"matchUpdateTypes": ["minor", "patch"],
 			"automerge": true
+		},
+		{
+			"matchPackageNames": ["env-paths"],
+			"enabled": false
 		}
 	],
 	"schedule": ["every weekend"],
 	"labels": ["dependencies"],
 	"prHourlyLimit": 4,
 	"prConcurrentLimit": 16,
-	"rangeStrategy": "pin",
 	"separateMinorPatch": true,
 	"semanticCommits": "enabled",
 	"semanticCommitType": "chore",
