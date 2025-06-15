@@ -29,7 +29,7 @@
 		"@expo/cli": "^0.24.13",
 		"@expo/config": "^11.0.10",
 		"cosmiconfig": "^9.0.0",
-		"env-paths": "^2.2.1",
+		"env-paths": "^3.0.0",
 		"zod": "^4.0.0-beta.20250505T195954"
 	},
 	"devDependencies": {
