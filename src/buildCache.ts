@@ -2,6 +2,9 @@ import path from "node:path";
 import type { ResolveBuildCacheProps } from "@expo/config";
 import { getPackageJson } from "@expo/config";
 
+export const filePrefix = "fingerprint.";
+export const devClientSuffix = ".dev-client";
+
 export function getTagName({
 	fingerprintHash,
 	projectRoot,
@@ -9,7 +12,7 @@ export function getTagName({
 }: Pick<ResolveBuildCacheProps, "fingerprintHash" | "projectRoot" | "runOptions">): string {
 	const isDevClient = isDevClientBuild({ projectRoot, runOptions });
 
-	return `fingerprint.${fingerprintHash}${isDevClient ? ".dev-client" : ""}`;
+	return `${filePrefix}${fingerprintHash}${isDevClient ? devClientSuffix : ""}`;
 }
 
 interface GetAppPath extends ResolveBuildCacheProps {
