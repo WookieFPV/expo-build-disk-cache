@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.6...v0.5.0) (2025-06-17)
+
+
+### Features
+
+* add support for environment variables for all config options ([f1b48cf](https://github.com/WookieFPV/expo-build-disk-cache/commit/f1b48cfb5aef27bd85c4ea2f83af22d966f02069))
+
+
+### Bug Fixes
+
+* fix debug mode logging not showing correct stats in some configurations ([9e8f3d8](https://github.com/WookieFPV/expo-build-disk-cache/commit/9e8f3d87cd3055c92d5f74ea229417240ead5db4))
+* improve cacheDirectory cleanup (ensure that only app artifacts from this package are auto deleted, other apks/files should get ignored) ([623f06e](https://github.com/WookieFPV/expo-build-disk-cache/commit/623f06e521bfca751f35fb03056db34f8e46467d))
+
 ## [0.4.6](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.5...v0.4.6) (2025-06-13)
 
 
