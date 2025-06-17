@@ -9,7 +9,7 @@ const validExtensions = [".apk", ".app"];
  */
 export const isValidFile = (filePath: string): boolean => {
 	const fileName = path.basename(filePath);
-	return validExtensions.some((ext) => filePath.endsWith(ext) && fileName.startsWith(filePrefix));
+	return fileName.startsWith(filePrefix) && validExtensions.some((ext) => filePath.endsWith(ext));
 };
 
 export const readAppFiles = async (

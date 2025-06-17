@@ -42,8 +42,7 @@ export const fileCacheFactory = (
 
 	const printCacheStats = async () => {
 		try {
-			const parentFolder = path.dirname(cacheDir);
-			const folderStats = await getDirectoryStats(parentFolder);
+			const folderStats = await getDirectoryStats(cacheDir);
 			logger.info(
 				`💾 Cache Size: ${formatBytes(folderStats.totalSize)} Files: ${folderStats.fileCount}`,
 			);
@@ -55,21 +54,20 @@ export const fileCacheFactory = (
 	 */
 	const cleanupCacheFiles = async () => {
 		if (cacheGcTimeDays === -1) return;
-		const directory = path.dirname(cacheDir);
-		await tryCatch(fs.mkdir(directory, { recursive: true }));
+		await tryCatch(fs.mkdir(cacheDir, { recursive: true }));
 
-		logger.info(`Deleting files older than: ${cacheGcTimeDays} days in ${directory}`);
+		logger.info(`Deleting files older than: ${cacheGcTimeDays} days in ${cacheDir}`);
 
 		const now = Date.now();
 		let deletedCount = 0;
 		let deletedSize = 0;
 
-		const { data: files, error } = await tryCatch(readAppFiles(directory));
+		const { data: files, error } = await tryCatch(readAppFiles(cacheDir));
 		if (error?.message?.startsWith("ENOENT")) return { deletedCount: 0, deletedSize: 0 };
-		if (error) return logger.error(`Error reading directory ${directory}: ${error.message}`);
+		if (error) return logger.error(`Error reading directory ${cacheDir}: ${error.message}`);
 
 		for (const file of files) {
-			const filePath = path.join(directory, file);
+			const filePath = path.join(cacheDir, file);
 
 			const { data: stats, error: statError } = await tryCatch(fs.stat(filePath));
 			if (statError)
