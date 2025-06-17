@@ -7,19 +7,27 @@ export const numberLikeSchema = z.coerce.number();
 
 export type BooleanLike = boolean | string | number;
 export const booleanLikeSchema = z
-	.transform((value) => {
-		if (typeof value === "string") {
-			const lowerValue = value.toLowerCase();
-			if (lowerValue === "true" || lowerValue === "1" || lowerValue === "yes") {
-				return true;
-			}
-			if (lowerValue === "false" || lowerValue === "0" || lowerValue === "no") {
-				return false;
-			}
+	.union([z.boolean(), z.string(), z.number()])
+	.transform((value): boolean => {
+		if (typeof value === "boolean") return value;
+		if (typeof value === "number") return value !== 0;
+		const lowerValue = value.toLowerCase();
+		if (lowerValue === "true" || lowerValue === "1" || lowerValue === "yes") {
+			return true;
 		}
+		if (lowerValue === "false" || lowerValue === "0" || lowerValue === "no") {
+			return false;
+		}
+		console.log("Invalid boolean-like value:", value);
+		return false;
+	});
+
+export const jsonLikeSchema = z
+	.union([z.object().loose(), z.string()])
+	.transform((value): Record<string, unknown> => {
+		if (typeof value === "string") return JSON.parse(value) as Record<string, unknown>;
 		return value;
-	})
-	.pipe(z.boolean());
+	});
 
 /**
  * regex specifically targets ~ at the beginning of the string followed by the end of the string or a path separator, preventing unintended replacements.
@@ -66,3 +74,14 @@ export const configFilePaths = (...paths: string[]) => {
 	}
 	return FILE_EXTENSIONS.map((ext) => `${inputPath}.${ext}`);
 };
+
+export const createEnvAwareSchema = <T extends z.ZodType>(schema: T, envName: string) =>
+	schema
+		.optional()
+		.transform((val) => {
+			const envVar = process.env[envName];
+			// biome-ignore lint/suspicious/noExplicitAny: zod will validate the type at runtime
+			if (envVar && envVar !== "") return envVar as any;
+			return val;
+		})
+		.pipe(schema);

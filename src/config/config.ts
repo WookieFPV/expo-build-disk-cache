@@ -12,7 +12,9 @@ import {
 	booleanLikeSchema,
 	cleanupPath,
 	configFilePaths,
+	createEnvAwareSchema,
 	handleZodError,
+	jsonLikeSchema,
 	numberLikeSchema,
 } from "./configHelper.ts";
 
@@ -74,23 +76,30 @@ const defaultConfig = {
 		getCachedAppPath({ cacheDir: getDefaultCacheDir(), ...args }),
 } satisfies Config;
 
+const ENV_PREFIX = "DISK_CACHE_";
+
 const configSchema = z
 	.object({
-		cacheDir: z.string().optional().default(getDefaultCacheDir()).transform(cleanupPath),
-		enable: booleanLikeSchema
-			.optional()
+		cacheDir: createEnvAwareSchema(z.string().optional(), `${ENV_PREFIX}CACHE_DIR`)
+			.default(getDefaultCacheDir())
+			.transform(cleanupPath),
+		enable: createEnvAwareSchema(booleanLikeSchema.optional(), `${ENV_PREFIX}ENABLE`)
 			.default(defaultConfig.enable)
 			.catch(handleZodError(defaultConfig.enable)),
-		debug: booleanLikeSchema
-			.optional()
+		debug: createEnvAwareSchema(booleanLikeSchema.optional(), `${ENV_PREFIX}DEBUG`)
 			.default(defaultConfig.debug)
 			.catch(handleZodError(defaultConfig.debug)),
-		cacheGcTimeDays: numberLikeSchema
-			.optional()
+		cacheGcTimeDays: createEnvAwareSchema(numberLikeSchema.optional(), `${ENV_PREFIX}GC_TIME_DAYS`)
 			.default(defaultConfig.cacheGcTimeDays)
 			.catch(handleZodError(defaultConfig.cacheGcTimeDays)),
-		remotePlugin: z.string().optional(),
-		remoteOptions: z.object().loose().optional(),
+		remotePlugin: createEnvAwareSchema(
+			z.string().optional(),
+			`${ENV_PREFIX}REMOTE_PLUGIN`,
+		).optional(),
+		remoteOptions: createEnvAwareSchema(
+			jsonLikeSchema.optional(),
+			`${ENV_PREFIX}REMOTE_OPTIONS`,
+		).optional(),
 	})
 	.transform((data) => ({
 		...data,
@@ -133,8 +142,8 @@ export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config 
 		config = parseResult.data;
 
 		if (config.debug) {
-			console.log("expo-build-disk-cache config:");
-			console.log(`Searched Config File Locations: ${JSON.stringify(searchPlaces, null, 2)}`);
+			console.debug("expo-build-disk-cache config:");
+			console.debug(`Searched Config File Locations: ${JSON.stringify(searchPlaces, null, 2)}`);
 			const configSources: Array<{ source: string; config: unknown }> = [];
 			if (configResult)
 				configSources.push({
@@ -143,8 +152,8 @@ export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config 
 				});
 			if (appConfig) configSources.push({ source: "appConfig", config: appConfig });
 
-			console.log(`Config based on: ${JSON.stringify(configSources, null, 2)}`);
-			console.log(`Final config: ${JSON.stringify(config, null, 2)}`);
+			console.debug(`Config based on: ${JSON.stringify(configSources, null, 2)}`);
+			console.debug(`Final config: ${JSON.stringify(config, null, 2)}`);
 		}
 
 		return config ?? defaultConfig;
