@@ -37,7 +37,7 @@
 		"@total-typescript/ts-reset": "0.6.1",
 		"@tsconfig/bun": "1.0.8",
 		"@tsconfig/node18": "18.2.4",
-		"@types/bun": "1.2.17",
+		"@types/bun": "1.2.18",
 		"lefthook": "1.11.16",
 		"tsup": "8.5.0",
 		"typescript": "5.8.3"
