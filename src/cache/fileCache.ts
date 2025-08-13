@@ -46,7 +46,7 @@ export const fileCacheFactory = (
 			logger.info(
 				`💾 Cache Size: ${formatBytes(folderStats.totalSize)} Files: ${folderStats.fileCount}`,
 			);
-		} catch (error) {}
+		} catch (_error) {}
 	};
 
 	/**
