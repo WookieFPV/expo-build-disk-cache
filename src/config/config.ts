@@ -8,13 +8,13 @@ import { dedupeArray } from "../utils/dedupeArray.ts";
 import { xdgConfig } from "../utils/npmXdgBasedir.ts";
 import {
 	type BooleanLike,
-	type NumberLike,
 	booleanLikeSchema,
 	cleanupPath,
 	configFilePaths,
 	createEnvAwareSchema,
 	handleZodError,
 	jsonLikeSchema,
+	type NumberLike,
 	numberLikeSchema,
 } from "./configHelper.ts";
 

@@ -69,7 +69,7 @@ async function writeToDisk(args: UploadBuildCacheProps, config: Config): Promise
 					remoteOptions: config.remoteOptions,
 				});
 				await remotePluginProvider?.uploadBuildCache(args, config.remoteOptions);
-			} catch (e) {
+			} catch (_e) {
 				logger.log("💾 Build uploading failed!");
 			}
 		}
