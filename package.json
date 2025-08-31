@@ -33,7 +33,7 @@
 		"zod": "^4.0.0-beta.20250505T195954"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.2.0",
+		"@biomejs/biome": "2.2.2",
 		"@total-typescript/ts-reset": "0.6.1",
 		"@tsconfig/bun": "1.0.8",
 		"@tsconfig/node18": "18.2.4",
