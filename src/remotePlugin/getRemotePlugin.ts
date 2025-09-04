@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-expect-error
 import * as expoCacheProviderUtils from "@expo/cli/build/src/utils/build-cache-providers/index";
 import type {
 	BuildCacheProvider,

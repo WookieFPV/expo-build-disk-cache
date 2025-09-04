@@ -40,17 +40,30 @@ Can be combined with remote caching providers (like [**eas-build-cache-provider*
 You can configure options via:
 
 - **Expo app config** (`app.json`, `app.config.js`, or `app.config.ts`)
+  - For JSON configs:
   ```json
   {
-    "experiments": {
-      "buildCacheProvider": {
-        "plugin": "expo-build-disk-cache",
-        "options": {
-          "cacheDir": "node_modules/.expo-build-disk-cache"
-        }
+  "experiments": {
+    "buildCacheProvider": {
+      "plugin": "expo-build-disk-cache",
+      "options": {
+        "cacheDir": "node_modules/.expo-build-disk-cache"
       }
     }
   }
+  }
+  ```
+  - For JS/TS configs, you can use the `buildDiskCacheProvider` function for type-safe configuration:
+  ```js
+  // app.config.js or app.config.ts
+  const { buildDiskCacheProvider } = require('expo-build-disk-cache');
+  module.exports = {
+  experiments: {
+    buildCacheProvider: buildDiskCacheProvider({
+      cacheDir: 'node_modules/.expo-build-disk-cache'
+    })
+  }
+  };
   ```
 - **disk-cache.json** (in the project or home directory). This allows per-machine customization without affecting the build fingerprint and can be added to `.gitignore`.
   ```json

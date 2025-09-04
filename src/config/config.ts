@@ -18,8 +18,8 @@ import {
 	numberLikeSchema,
 } from "./configHelper.ts";
 
-const moduleName = "disk-cache";
-const folderName = "expo-build-disk-cache";
+const configName = "disk-cache";
+export const packageName = "expo-build-disk-cache" as const;
 
 /*
 Platform specific directory for config files.
@@ -31,17 +31,17 @@ Linux: ~/.config/expo-build-disk-cache (or $XDG_CONFIG_HOME/expo-build-disk-cach
 
 more: https://github.com/sindresorhus/env-paths?tab=readme-ov-file#pathsconfig
  */
-const configDir = envPaths("expo-build-disk-cache", { suffix: "" }).config;
+const configDir = envPaths(packageName, { suffix: "" }).config;
 
 const searchPlaces = dedupeArray(
 	[
 		"package.json",
-		configFilePaths(moduleName), // -> disk-cache.json, disk-cache.yaml or disk-cache.yml
-		configFilePaths(`.${moduleName}`),
-		configFilePaths(folderName, moduleName), // -> expo-build-disk-cache/disk-cache.json [or yaml/yml]
-		configFilePaths(configDir, moduleName),
-		xdgConfig ? configFilePaths(xdgConfig, folderName, moduleName) : [], // to support XDG_CONFIG_HOME on non Linux platforms
-		configFilePaths(".config", moduleName),
+		configFilePaths(configName), // -> disk-cache.json, disk-cache.yaml or disk-cache.yml
+		configFilePaths(`.${configName}`),
+		configFilePaths(packageName, configName), // -> expo-build-disk-cache/disk-cache.json [or yaml/yml]
+		configFilePaths(configDir, configName),
+		xdgConfig ? configFilePaths(xdgConfig, packageName, configName) : [], // to support XDG_CONFIG_HOME on non Linux platforms
+		configFilePaths(".config", configName),
 	].flat(),
 );
 
@@ -76,7 +76,7 @@ const defaultConfig = {
 		getCachedAppPath({ cacheDir: getDefaultCacheDir(), ...args }),
 } satisfies Config;
 
-const ENV_PREFIX = "DISK_CACHE_";
+const ENV_PREFIX = "DISK_CACHE_" as const;
 
 const configSchema = z
 	.object({
@@ -113,7 +113,7 @@ let config: Config | null = null;
 export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config {
 	if (config && !appConfig) return config; // Return cached config if already loaded & no new appConfig is passed
 
-	const explorerSync = cosmiconfigSync(moduleName, {
+	const explorerSync = cosmiconfigSync(configName, {
 		searchPlaces,
 		searchStrategy: "global",
 	});
