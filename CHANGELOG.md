@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.5.0...v0.6.0) (2025-09-04)
+
+
+### Features
+
+* add buildDiskCacheProvider to allowing setting buildCacheProvider in a typesafe way ([b083e80](https://github.com/WookieFPV/expo-build-disk-cache/commit/b083e8077a58bc82843e9f259c66b9f84d6ad714))
+
 ## [0.5.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.4.6...v0.5.0) (2025-06-17)
 
 
