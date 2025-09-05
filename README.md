@@ -56,7 +56,7 @@ You can configure options via:
   - For JS/TS configs, you can use the `buildDiskCacheProvider` function for type-safe configuration:
   ```js
   // app.config.js or app.config.ts
-  const { buildDiskCacheProvider } = require('expo-build-disk-cache');
+  import { buildDiskCacheProvider } from 'expo-build-disk-cache';
   module.exports = {
   experiments: {
     buildCacheProvider: buildDiskCacheProvider({
