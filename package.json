@@ -26,7 +26,7 @@
 		"prepublishOnly": "bun i && bun run lint:CI && tsc && bun run build"
 	},
 	"dependencies": {
-		"@expo/cli": "^0.24.13",
+		"@expo/cli": "^0.26.0",
 		"@expo/config": "^11.0.10",
 		"cosmiconfig": "^9.0.0",
 		"env-paths": "^2.2.1",
