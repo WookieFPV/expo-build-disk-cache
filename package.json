@@ -38,7 +38,7 @@
 		"@tsconfig/bun": "1.0.8",
 		"@tsconfig/node18": "18.2.4",
 		"@types/bun": "1.2.21",
-		"lefthook": "1.12.3",
+		"lefthook": "1.12.4",
 		"tsup": "8.5.0",
 		"typescript": "5.9.2"
 	},
