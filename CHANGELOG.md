@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.6.0...v0.7.0) (2025-09-18)
+
+
+### Features
+
+* update packages and allow the users to use more versions for (zod, @expo/cli & @expo/config versions) ([0cd5ca5](https://github.com/WookieFPV/expo-build-disk-cache/commit/0cd5ca59b757af739d265aa8dcf5981179f144f0))
+
 ## [0.6.0](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.5.0...v0.6.0) (2025-09-04)
 
 
