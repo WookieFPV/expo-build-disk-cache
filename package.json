@@ -38,7 +38,7 @@
 		"@types/bun": "1.2.22",
 		"lefthook": "1.13.4",
 		"tsup": "8.5.0",
-		"typescript": "5.9.2",
+		"typescript": "5.9.3",
 		"@expo/cli": "^54.0.6",
 		"@expo/config": "^12.0.9"
 	},
