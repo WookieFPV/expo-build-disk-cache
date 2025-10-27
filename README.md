@@ -1,50 +1,61 @@
 # expo-build-disk-cache [![npm][npm-image]][npm-url] ![npm][npm-dl-stats]
 
-> **Drastically speed up your `npx expo run:android` or `npx expo run:ios` builds!**
+> ⚡ **Drastically speed up your `npx expo run:android` or `npx expo run:ios` builds!**
 
-This plugin adds local disk caching for Expo builds. If a matching cached build exists, it launches instantly, letting you skip the often time-consuming compilation step entirely.
+`expo-build-disk-cache` enables **local disk caching** for Expo builds.  
+When a cached build is available, it launches almost instantly — skipping the usual compilation step.
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-- **Requires Expo SDK 53+**
-- Install:
-  ```bash
-  npm install --save-dev expo-build-disk-cache
-  ```
-- Add to your app config:
+### Requirements
 
-  - **Expo 53:** (experimental, under `experiments`)
-    ```json5
-    {
-      "experiments": {
-        "buildCacheProvider": {
-          "plugin": "expo-build-disk-cache"
-        }
-      }
+- **Expo SDK 53+**
+
+### Installation
+
+```bash
+npm install --save-dev expo-build-disk-cache
+```
+
+### Add to Your App Config
+
+#### Expo SDK 53 (experimental)
+```jsonc
+{
+  "experiments": {
+    "buildCacheProvider": {
+      "plugin": "expo-build-disk-cache"
     }
-    ```
-  - **Expo 54+:** (top-level `buildCacheProvider`)
-    ```json5
-    {
-      "buildCacheProvider": {
-        "plugin": "expo-build-disk-cache"
-      }
-    }
-    ```
+  }
+}
+```
+
+#### Expo SDK 54+
+```jsonc
+{
+  "buildCacheProvider": {
+    "plugin": "expo-build-disk-cache"
+  }
+}
+```
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
-See [Configuration.md](./Configuration.md) for full details on advanced options, like cache directory, cache cleanup and remotePlugin.
+See the full [Configuration Guide](./Configuration.md) for advanced usage, including:
+
+- Custom cache directory (`cacheDir`)
+- Automatic cache cleanup
+- Integration with remote caching providers (like EAS)
 
 ---
 
-## Acknowledgments
+## 🤝 Acknowledgments
 
-> **Special thanks to [Expo](https://expo.dev/) for making this possible and for their overall great software.**
+> Huge thanks to the [Expo](https://expo.dev/) team for making this possible and for their incredible open-source work.
 
 ---
 
