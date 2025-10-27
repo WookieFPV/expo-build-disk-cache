@@ -1,28 +1,39 @@
 # Configuration Guide
 
-This document explains how to configure **expo-build-disk-cache** for your project.
+Configure `expo-build-disk-cache` to fine-tune its behavior.
 
-## Configuration Options (optional)
+## Configuration Options
 
-| Option            | Description                                          | Default         | Env Variable                                 |
-|-------------------|------------------------------------------------------|-----------------|----------------------------------------------|
-| `cacheDir`        | Path to the cache directory                          | System temp dir | `DISK_CACHE_CACHE_DIR`                       |
-| `cacheGcTimeDays` | Days before unused files are deleted (`-1` disables) | 7               | `DISK_CACHE_GC_TIME_DAYS`                    |
-| `debug`           | Enable verbose logging                               | false           | `DISK_CACHE_DEBUG`                           |
-| `enable`          | Enable or disable the plugin                         | true            | `DISK_CACHE_ENABLE`                          |
-| `remotePlugin`    | Remote cache provider (e.g., `eas`)                  | N/A             | `DISK_CACHE_REMOTE_PLUGIN`                   |
-| `remoteOptions`   | Options for the remote build cache provider          | N/A             | `DISK_CACHE_REMOTE_OPTIONS` (as JSON string) |
+| Option            | Description                                  | Default      | Environment Variable                 |
+| :---------------- | :------------------------------------------- | :----------- | :----------------------------------- |
+| `cacheDir`        | Path to store build caches                   | System temp  | `DISK_CACHE_CACHE_DIR`               |
+| `cacheGcTimeDays` | Days to retain unused cache files (`-1` to disable) | 7            | `DISK_CACHE_GC_TIME_DAYS`            |
+| `debug`           | Enable verbose logging                       | `false`      | `DISK_CACHE_DEBUG`                   |
+| `enable`          | Enable/disable the plugin                    | `true`       | `DISK_CACHE_ENABLE`                  |
+| `remotePlugin`    | Remote cache provider (e.g., `eas`)          | N/A          | `DISK_CACHE_REMOTE_PLUGIN`           |
+| `remoteOptions`   | Options for the remote provider              | N/A          | `DISK_CACHE_REMOTE_OPTIONS` (JSON)   |
 
-> **Note:** Environment variables take precedence over other config sources.
+> **Note:** Environment variables always take precedence.
 
 ## How to Configure
 
-You can configure options via:
+Apply settings via:
 
 - Expo App Config **Config** (`app.json`, `app.config.js` or `app.config.ts`):
-  ```json
-  {
-    "experiments": {
+  ```json5
+    // For Expo 53
+    {
+      "experiments": {
+        "buildCacheProvider": {
+          "plugin": "expo-build-disk-cache",
+          "options": {
+            "cacheDir": "node_modules/.expo-build-disk-cache"
+          }
+        }
+      }
+    }
+    // For Expo 54+
+    {
       "buildCacheProvider": {
         "plugin": "expo-build-disk-cache",
         "options": {
@@ -30,20 +41,7 @@ You can configure options via:
         }
       }
     }
-  }
-  ```
-- Expo App Config Config **using `buildDiskCacheProvider` function**:
-  ```js
-  // app.config.js or app.config.ts
-  import { buildDiskCacheProvider } from 'expo-build-disk-cache';
-  module.exports = {
-    experiments: {
-      buildCacheProvider: buildDiskCacheProvider({
-        cacheDir: 'node_modules/.expo-build-disk-cache'
-      })
-    }
-  };
-  ```
+    ```
 
 - **disk-cache.json** (in the project or home directory). This allows per-machine customization without affecting the build fingerprint and can be added to `.gitignore`.
   ```json
@@ -93,7 +91,7 @@ _Remote caching solutions only transfer files needed for the current build, sign
 
 ## Using with EAS Remote Build Cache Provider
 
-Add `remotePlugin` to your configuration to use the EAS remote build cache provider:
+Enable EAS remote caching by setting `remotePlugin` to `eas` in your options:
 
 ```json
 {
