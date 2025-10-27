@@ -43,6 +43,7 @@ jobs:
         run: bun run build
 
       - run: bunx pkg-pr-new publish
+        continue-on-error: true
 
       - name: Publish to npm
         run: bun publish --access public
