@@ -21,7 +21,17 @@ npm install --save-dev expo-build-disk-cache
 
 ### Add to Your App Config
 
-#### Expo SDK 53 (experimental)
+
+#### Expo SDK 54+
+```jsonc
+{
+  "buildCacheProvider": {
+    "plugin": "expo-build-disk-cache"
+  }
+}
+```
+
+#### Expo SDK 53 (under experimental)
 ```jsonc
 {
   "experiments": {
@@ -32,14 +42,6 @@ npm install --save-dev expo-build-disk-cache
 }
 ```
 
-#### Expo SDK 54+
-```jsonc
-{
-  "buildCacheProvider": {
-    "plugin": "expo-build-disk-cache"
-  }
-}
-```
 
 ---
 
