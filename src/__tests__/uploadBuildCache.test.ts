@@ -16,7 +16,7 @@ const baseOptions: Omit<ResolveBuildCacheProps, "fingerprintHash"> = {
 	runOptions: {},
 };
 
-describe("Disk Cache Provider", () => {
+describe("uploadBuildCache", () => {
 	it("should return null when args are undefined and buildPath is missing", async () => {
 		const args = undefined;
 		const fingerprintHash = crypto.randomUUID();

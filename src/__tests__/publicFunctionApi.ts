@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { packageName } from "../config/config.ts";
 import { buildDiskCacheProvider } from "../index.ts";
 
-describe("Public API", () => {
+describe("Public Function API", () => {
 	describe("buildDiskCacheProvider function", () => {
 		it("should exist", () => {
 			expect(typeof buildDiskCacheProvider).toBe("function");

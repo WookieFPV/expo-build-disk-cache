@@ -7,6 +7,8 @@ import type {
 	UploadBuildCacheProps,
 } from "@expo/config";
 import type { Config } from "../config/config.ts";
+import { logger } from "../logger.ts";
+import { texts } from "../texts.ts";
 import { tryCatch } from "../utils/tryCatch.ts";
 
 export const getRemotePlugin = async (
@@ -25,7 +27,7 @@ export const getRemotePlugin = async (
 	);
 	const plugin = data?.plugin;
 	if (!plugin || error) {
-		console.log(`💾[remote] failed to load plugin "${appConfig.remotePlugin}"`);
+		logger.log(texts.remotePlugin.loadError(appConfig.remotePlugin));
 		return null;
 	}
 	return {

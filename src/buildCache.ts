@@ -26,9 +26,11 @@ export function getCachedAppPath({
 	runOptions,
 	cacheDir,
 }: GetAppPath): string {
-	return path.join(
-		path.resolve(cacheDir),
-		getFileName({ runOptions, projectRoot, fingerprintHash, platform }),
+	return path.resolve(
+		path.join(
+			path.resolve(cacheDir),
+			getFileName({ runOptions, projectRoot, fingerprintHash, platform }),
+		),
 	);
 }
 
