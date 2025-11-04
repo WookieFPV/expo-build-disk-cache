@@ -13,6 +13,7 @@ import {
 import { withConfig } from "./config/withConfig.ts";
 import { logger } from "./logger.ts";
 import { getRemotePlugin } from "./remotePlugin/getRemotePlugin.ts";
+import { texts } from "./texts.ts";
 import { tryCatch } from "./utils/tryCatch.ts";
 
 async function readFromDisk(args: ResolveBuildCacheProps, config: Config): Promise<string | null> {
@@ -21,12 +22,12 @@ async function readFromDisk(args: ResolveBuildCacheProps, config: Config): Promi
 
 		const exists = await fileCache.has();
 		if (exists) {
-			logger.log("💾 Using cached build from disk");
+			logger.log(texts.read.hit);
 			await fileCache.cleanup();
 			if (config.debug) await fileCache.printStats();
 			return fileCache.getPath();
 		}
-		logger.log("💾 No cached build found on disk");
+		logger.log(texts.read.miss);
 		if (config.remotePlugin) {
 			try {
 				const remotePluginProvider = await getRemotePlugin(args, {
@@ -44,12 +45,12 @@ async function readFromDisk(args: ResolveBuildCacheProps, config: Config): Promi
 				if (error) return null;
 				return fileCache.getPath();
 			} catch (e) {
-				logger.log(`💾 Failed to download build: ${e}`);
+				logger.log(texts.read.downloadError(e));
 			}
 		}
 		return null;
 	} catch (e) {
-		logger.log(`💾 Failed to read cache: ${e}`);
+		logger.log(texts.read.error(e));
 		return null;
 	}
 }
@@ -58,14 +59,14 @@ async function writeToDisk(args: UploadBuildCacheProps, config: Config): Promise
 	const fileCache = fileCacheFactory(args, config);
 	const exits = await fileCache.has();
 	if (exits) {
-		logger.log("💾 Cached build was already saved");
+		logger.log(texts.write.alreadySaved);
 		return fileCache.getPath();
 	}
 	try {
 		await fileCache.cleanup();
 		await fileCache.write(args.buildPath);
 
-		logger.log(`💾 Saved build output to disk: ${fileCache.getPath()}`);
+		logger.log(texts.write.savedToDisk(fileCache.getPath()));
 		await fileCache.printStats();
 		if (config.remotePlugin) {
 			try {
@@ -75,16 +76,12 @@ async function writeToDisk(args: UploadBuildCacheProps, config: Config): Promise
 				});
 				await remotePluginProvider?.uploadBuildCache(args, config.remoteOptions);
 			} catch (_e) {
-				logger.log("💾 Build uploading failed!");
+				logger.log(texts.write.remoteError);
 			}
 		}
 		return fileCache.getPath();
 	} catch (error) {
-		logger.error(
-			`💾 Failed to save build output to disk at ${fileCache.getPath()}: ${
-				error instanceof Error ? error.message : "Unknown error"
-			}`,
-		);
+		logger.error(texts.write.error(fileCache.getPath(), error));
 		return null;
 	}
 }

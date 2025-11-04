@@ -1,6 +1,8 @@
 import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
+import { logger } from "../logger.ts";
+import { texts } from "../texts.ts";
 
 export type NumberLike = boolean | string | number;
 export const numberLikeSchema = z.coerce.number();
@@ -18,7 +20,7 @@ export const booleanLikeSchema = z
 		if (lowerValue === "false" || lowerValue === "0" || lowerValue === "no") {
 			return false;
 		}
-		console.log("Invalid boolean-like value:", value);
+		logger.log(texts.config.invalidBool(value));
 		return false;
 	});
 
@@ -47,11 +49,11 @@ export const handleZodError = <T>(defaultValue: T) => {
 		// Zod V4 Error Handling:
 		if ("issues" in ctx && Array.isArray(ctx.issues)) {
 			for (const issue of ctx.issues) {
-				console.warn(`Invalid config value: ${issue.message}`);
+				logger.warn(texts.config.invalidValue(issue.message));
 			}
 			// Zod V3 Error Handling:
 		} else if ("error" in ctx && ctx.error && ctx.error instanceof Error) {
-			console.error(`Invalid config file ${ctx.error.message}`);
+			logger.error(texts.config.invalidFile(ctx.error.message));
 		}
 
 		return defaultValue;

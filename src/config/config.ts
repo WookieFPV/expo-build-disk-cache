@@ -4,6 +4,7 @@ import envPaths from "env-paths";
 import { z } from "zod";
 import { getCachedAppPath } from "../buildCache.ts";
 import { getDefaultCacheDir } from "../cache/cacheDirectory.ts";
+import { logger } from "../logger.ts";
 import { dedupeArray } from "../utils/dedupeArray.ts";
 import { xdgConfig } from "../utils/npmXdgBasedir.ts";
 import {
@@ -131,19 +132,19 @@ export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config 
 			},
 		});
 		if (!parseResult.success) {
-			console.log("Config validation failed, ignoring config files. error:", parseResult.error);
+			logger.log("Config validation failed, ignoring config files. error:", parseResult.error);
 			if (configResult?.filepath)
-				console.log(
+				logger.log(
 					`Used config file: ${configResult?.filepath} with content: ${JSON.stringify(configResult?.config)}, appConfig: ${JSON.stringify(appConfig)}`,
 				);
-			if (appConfig) console.log(`Used appConfig: ${JSON.stringify(appConfig)}`);
+			if (appConfig) logger.log(`Used appConfig: ${JSON.stringify(appConfig)}`);
 			return defaultConfig;
 		}
 		config = parseResult.data;
 
 		if (config.debug) {
-			console.debug("expo-build-disk-cache config:");
-			console.debug(`Searched Config File Locations: ${JSON.stringify(searchPlaces, null, 2)}`);
+			logger.debug("expo-build-disk-cache config:");
+			logger.debug(`Searched Config File Locations: ${JSON.stringify(searchPlaces, null, 2)}`);
 			const configSources: Array<{ source: string; config: unknown }> = [];
 			if (configResult)
 				configSources.push({
@@ -152,13 +153,13 @@ export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config 
 				});
 			if (appConfig) configSources.push({ source: "appConfig", config: appConfig });
 
-			console.debug(`Config based on: ${JSON.stringify(configSources, null, 2)}`);
-			console.debug(`Final config: ${JSON.stringify(config, null, 2)}`);
+			logger.debug(`Config based on: ${JSON.stringify(configSources, null, 2)}`);
+			logger.debug(`Final config: ${JSON.stringify(config, null, 2)}`);
 		}
 
 		return config ?? defaultConfig;
 	} catch (error) {
-		console.error("Error loading config:", error);
+		logger.error("Error loading config:", error);
 		config = defaultConfig; // Assign default config even on error.
 		return config;
 	}
