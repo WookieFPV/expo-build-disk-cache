@@ -31,7 +31,7 @@ npm install --save-dev expo-build-disk-cache
 }
 ```
 
-#### Expo SDK 53 (under experimental)
+#### Expo SDK 53 (under experiments)
 ```jsonc
 {
   "experiments": {

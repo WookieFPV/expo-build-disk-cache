@@ -4,14 +4,14 @@ Configure `expo-build-disk-cache` to fine-tune its behavior.
 
 ## Configuration Options
 
-| Option            | Description                                  | Default      | Environment Variable                 |
-| :---------------- | :------------------------------------------- | :----------- | :----------------------------------- |
-| `cacheDir`        | Path to store build caches                   | System temp  | `DISK_CACHE_CACHE_DIR`               |
-| `cacheGcTimeDays` | Days to retain unused cache files (`-1` to disable) | 7            | `DISK_CACHE_GC_TIME_DAYS`            |
-| `debug`           | Enable verbose logging                       | `false`      | `DISK_CACHE_DEBUG`                   |
-| `enable`          | Enable/disable the plugin                    | `true`       | `DISK_CACHE_ENABLE`                  |
-| `remotePlugin`    | Remote cache provider (e.g., `eas`)          | N/A          | `DISK_CACHE_REMOTE_PLUGIN`           |
-| `remoteOptions`   | Options for the remote provider              | N/A          | `DISK_CACHE_REMOTE_OPTIONS` (JSON)   |
+| Option            | Description                                         | Default     | Environment Variable               |
+|:------------------|:----------------------------------------------------|:------------|:-----------------------------------|
+| `cacheDir`        | Path to store build caches                          | System temp | `DISK_CACHE_CACHE_DIR`             |
+| `cacheGcTimeDays` | Days to retain unused cache files (`-1` to disable) | 7           | `DISK_CACHE_GC_TIME_DAYS`          |
+| `debug`           | Enable verbose logging                              | `false`     | `DISK_CACHE_DEBUG`                 |
+| `enable`          | Enable/disable the plugin                           | `true`      | `DISK_CACHE_ENABLE`                |
+| `remotePlugin`    | Remote cache provider (e.g., `eas`)                 | N/A         | `DISK_CACHE_REMOTE_PLUGIN`         |
+| `remoteOptions`   | Options for the remote provider                     | N/A         | `DISK_CACHE_REMOTE_OPTIONS` (JSON) |
 
 > **Note:** Environment variables always take precedence.
 
