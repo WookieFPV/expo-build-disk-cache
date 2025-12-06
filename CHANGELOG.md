@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.7.1...v0.7.2) (2025-12-06)
+
+
+### Bug Fixes
+
+* improve & add more tests ([b55bf3f](https://github.com/WookieFPV/expo-build-disk-cache/commit/b55bf3fbbfc413784ca2bc59a4e37154a276f238))
+
 ## [0.7.1](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.7.0...v0.7.1) (2025-10-27)
 
 
