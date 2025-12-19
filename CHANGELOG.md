@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.7.1...v0.7.2) (2025-12-19)
+
+
+### Bug Fixes
+
+* fix crash on iOS Brownfield Apps (when symblinks are used) ([b16639f](https://github.com/WookieFPV/expo-build-disk-cache/commit/b16639fcc1608e55e5db4e9eb732de757a739870))
+
 ## [0.7.1](https://github.com/WookieFPV/expo-build-disk-cache/compare/v0.7.0...v0.7.1) (2025-10-27)
 
 
