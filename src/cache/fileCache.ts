@@ -18,7 +18,7 @@ export const fileCacheFactory = (
 
 	const cacheWrite = async (buildPath: string): Promise<void> => {
 		await fs.mkdir(path.dirname(appPath), { recursive: true });
-		await fs.cp(buildPath, appPath, { recursive: true });
+		await fs.cp(buildPath, appPath, { recursive: true, verbatimSymlinks: true });
 	};
 
 	const cacheHas = async (): Promise<boolean> => {
