@@ -16,14 +16,20 @@
 		"type": "git",
 		"url": "https://github.com/WookieFPV/expo-build-disk-cache"
 	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"build": "tsup",
 		"build:dev": "tsup --watch --clean false",
+		"changeset": "changeset",
 		"test": "bun test",
 		"lint": "bunx biome check --fix",
 		"lint:CI": "bunx biome check",
+		"release": "changeset publish",
 		"typecheck": "tsc",
-		"prepublishOnly": "bun i && bun run lint:CI && tsc && bun run build"
+		"version-packages": "changeset version",
+		"prepublishOnly": "bun run typecheck && bun run lint:CI && bun test && bun run build"
 	},
 	"dependencies": {
 		"cosmiconfig": "^9.0.0",
@@ -32,6 +38,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.11",
+		"@changesets/cli": "2.30.0",
 		"@total-typescript/ts-reset": "0.6.1",
 		"@tsconfig/bun": "1.0.10",
 		"@tsconfig/node18": "18.2.6",

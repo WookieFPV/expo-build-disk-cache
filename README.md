@@ -55,6 +55,16 @@ See the full [Configuration Guide](./Configuration.md) for advanced usage, inclu
 
 ---
 
+## 📦 Releases
+
+This repo uses Changesets.
+
+1. For any user-facing package change, run `bun run changeset` and commit the generated file in `.changeset/`.
+2. When changesets reach `main`, GitHub Actions opens or updates a release PR with the version bump and generated `CHANGELOG.md`.
+3. Merge that release PR to publish to npm.
+
+---
+
 ## 🤝 Acknowledgments
 
 > Huge thanks to the [Expo](https://expo.dev/) team for making this possible and for their incredible open-source work.
