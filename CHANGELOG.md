@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.4
+
+### Patch Changes
+
+- a9b8a77: Update dependencies to resolve security vulnerabilities
+
 ## 0.7.3
 
 ### Patch Changes
