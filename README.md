@@ -11,7 +11,7 @@ When a cached build is available, it launches almost instantly — skipping the 
 
 ### Requirements
 
-- **Expo SDK 53+**
+- Expo SDK 53+
 
 ### Installation
 
@@ -21,8 +21,8 @@ npm install --save-dev expo-build-disk-cache
 
 ### Add to Your App Config
 
-
 #### Expo SDK 54+
+
 ```jsonc
 {
   "buildCacheProvider": {
@@ -31,7 +31,8 @@ npm install --save-dev expo-build-disk-cache
 }
 ```
 
-#### Expo SDK 53 (under experiments)
+#### Expo SDK 53
+
 ```jsonc
 {
   "experiments": {
@@ -45,13 +46,7 @@ npm install --save-dev expo-build-disk-cache
 
 ---
 
-## ⚙️ Configuration
-
-See the full [Configuration Guide](./Configuration.md) for advanced usage, including:
-
-- Custom cache directory (`cacheDir`)
-- Automatic cache cleanup
-- Integration with remote caching providers (like EAS)
+See the full [Configuration Guide](./Configuration.md) for advanced options, cache cleanup, CI setup, and remote caching.
 
 ---
 

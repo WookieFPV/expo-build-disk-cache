@@ -1,10 +1,10 @@
 {
 	"name": "expo-build-disk-cache",
-	"description": "A plugin for Expo CLI that provides disk-based app build caching",
+	"description": "Cache Expo iOS and Android native builds on local disk to skip repeated compilations.",
 	"version": "0.7.4",
 	"author": {
 		"name": "WookieFPV (Lukas Müller)",
-		"url": "github.com/WookieFPV"
+		"url": "https://github.com/WookieFPV"
 	},
 	"license": "MIT",
 	"main": "dist/index.js",
@@ -16,6 +16,18 @@
 		"type": "git",
 		"url": "https://github.com/WookieFPV/expo-build-disk-cache"
 	},
+	"homepage": "https://github.com/WookieFPV/expo-build-disk-cache#readme",
+	"bugs": {
+		"url": "https://github.com/WookieFPV/expo-build-disk-cache/issues"
+	},
+	"keywords": [
+		"expo",
+		"react-native",
+		"build-cache",
+		"ios",
+		"android",
+		"prebuild"
+	],
 	"publishConfig": {
 		"access": "public"
 	},
