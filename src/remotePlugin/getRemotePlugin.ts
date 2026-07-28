@@ -15,7 +15,7 @@ export const getRemotePlugin = async (
 	args: ResolveBuildCacheProps | UploadBuildCacheProps,
 	appConfig: Pick<Partial<Config>, "remotePlugin" | "remoteOptions">,
 ) => {
-	if (!("remotePlugin" in appConfig)) return null;
+	if (!appConfig.remotePlugin) return null;
 
 	const remotePluginConfig =
 		appConfig.remotePlugin === "eas"

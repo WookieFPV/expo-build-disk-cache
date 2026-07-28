@@ -1,10 +1,19 @@
 import os from "node:os";
 import path from "node:path";
-import { logger } from "../logger.ts";
 import { texts } from "../texts.ts";
 
 export type NumberLike = boolean | string | number;
 export type BooleanLike = boolean | string | number;
+
+/**
+ * Config values come from untrusted sources (config files, env vars, app config), so every parser
+ * takes `unknown` and falls back to the default instead of throwing.
+ *
+ * Problems are collected instead of logged directly: this keeps the parsers pure/testable and it
+ * lets {@link getConfig} report every issue together with the config sources it read them from.
+ * (It also keeps this module free of the `logger` -> `config` import cycle.)
+ */
+export type ConfigIssues = string[];
 
 /**
  * regex specifically targets ~ at the beginning of the string followed by the end of the string or a path separator, preventing unintended replacements.
@@ -14,56 +23,130 @@ const regex = /^~(?=$|\/|\\)/;
 export const cleanupPath = (cacheDir: string) =>
 	path.resolve(cacheDir.replace(regex, os.homedir()));
 
-export const readEnvValue = <T>(value: T | undefined, envName: string): T | string | undefined => {
+const describeValue = (value: unknown): string => {
+	if (typeof value === "string") return value;
+	if (typeof value === "object" && value !== null) {
+		try {
+			return JSON.stringify(value);
+		} catch {
+			return Object.prototype.toString.call(value);
+		}
+	}
+	return String(value);
+};
+
+const describeFallback = (defaultValue: unknown): string =>
+	defaultValue === undefined ? "ignoring it" : `using default: ${describeValue(defaultValue)}`;
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+	typeof value === "object" && value !== null && !Array.isArray(value);
+
+/**
+ * Environment variables take precedence over every other config source.
+ * An unset or empty env var falls through to the value that was passed in.
+ */
+export const readEnvValue = <T>(value: T, envName: string): T | string => {
 	const envVar = process.env[envName];
-	if (envVar && envVar !== "") return envVar;
+	if (envVar) return envVar;
 	return value;
 };
 
+const TRUE_VALUES = ["true", "1", "yes", "on"];
+const FALSE_VALUES = ["false", "0", "no", "off"];
+
 export const parseBooleanLike = (
-	value: BooleanLike | undefined,
+	value: unknown,
+	name: string,
 	defaultValue: boolean,
+	issues: ConfigIssues = [],
 ): boolean => {
-	if (value === undefined) return defaultValue;
+	// `null` is how JSON/YAML spell "no value", so treat it like an absent key.
+	if (value === undefined || value === null) return defaultValue;
 	if (typeof value === "boolean") return value;
-	if (typeof value === "number") return value !== 0;
+	if (typeof value === "number" && !Number.isNaN(value)) return value !== 0;
 
-	const lowerValue = value.toLowerCase();
-	if (lowerValue === "true" || lowerValue === "1" || lowerValue === "yes") return true;
-	if (lowerValue === "false" || lowerValue === "0" || lowerValue === "no") return false;
+	if (typeof value === "string") {
+		const lowerValue = value.trim().toLowerCase();
+		if (TRUE_VALUES.includes(lowerValue)) return true;
+		if (FALSE_VALUES.includes(lowerValue)) return false;
+	}
 
-	logger.log(texts.config.invalidBool(value));
+	issues.push(texts.config.invalidBool(name, describeValue(value), describeFallback(defaultValue)));
 	return defaultValue;
 };
 
-export const parseNumberLike = (value: NumberLike | undefined, defaultValue: number): number => {
-	if (value === undefined) return defaultValue;
-	const parsedValue = Number(value);
-	if (Number.isNaN(parsedValue)) {
-		logger.warn(texts.config.invalidValue(String(value)));
+export const parseNumberLike = (
+	value: unknown,
+	name: string,
+	defaultValue: number,
+	issues: ConfigIssues = [],
+): number => {
+	if (value === undefined || value === null) return defaultValue;
+
+	const isNumberLike =
+		typeof value === "number" ||
+		typeof value === "boolean" ||
+		(typeof value === "string" && value.trim() !== "");
+
+	// Number.isFinite also rejects NaN and +/-Infinity, which would silently disable cache cleanup.
+	const parsedValue = isNumberLike ? Number(value) : Number.NaN;
+	if (!Number.isFinite(parsedValue)) {
+		issues.push(
+			texts.config.invalidValue(name, describeValue(value), describeFallback(defaultValue)),
+		);
 		return defaultValue;
 	}
 	return parsedValue;
 };
 
-export const parseJsonLike = (
-	value: Record<string, unknown> | string | undefined,
-	defaultValue: Record<string, unknown> | undefined,
-): Record<string, unknown> | undefined => {
-	if (value === undefined) return defaultValue;
-	if (typeof value !== "string") return value;
+export const parseStringLike = <T extends string | undefined>(
+	value: unknown,
+	name: string,
+	defaultValue: T,
+	issues: ConfigIssues = [],
+): string | T => {
+	if (value === undefined || value === null) return defaultValue;
 
-	try {
-		const parsedValue: unknown = JSON.parse(value);
-		if (parsedValue && typeof parsedValue === "object" && !Array.isArray(parsedValue)) {
-			return parsedValue as Record<string, unknown>;
-		}
-		logger.warn(texts.config.invalidValue(value));
-		return defaultValue;
-	} catch (error) {
-		logger.error(texts.config.invalidFile(error instanceof Error ? error.message : String(error)));
+	if (typeof value !== "string" || value.trim() === "") {
+		issues.push(
+			texts.config.invalidValue(name, describeValue(value), describeFallback(defaultValue)),
+		);
 		return defaultValue;
 	}
+	return value;
+};
+
+export const parseJsonLike = (
+	value: unknown,
+	name: string,
+	defaultValue?: Record<string, unknown>,
+	issues: ConfigIssues = [],
+): Record<string, unknown> | undefined => {
+	if (value === undefined || value === null) return defaultValue;
+
+	let parsedValue: unknown = value;
+	if (typeof value === "string") {
+		try {
+			parsedValue = JSON.parse(value);
+		} catch (error) {
+			issues.push(
+				texts.config.invalidJson(
+					name,
+					error instanceof Error ? error.message : String(error),
+					describeFallback(defaultValue),
+				),
+			);
+			return defaultValue;
+		}
+	}
+
+	// Applies to both branches: an array or a bare JSON scalar is not a valid options object.
+	if (isPlainObject(parsedValue)) return parsedValue;
+
+	issues.push(
+		texts.config.invalidValue(name, describeValue(value), describeFallback(defaultValue)),
+	);
+	return defaultValue;
 };
 
 const FILE_EXTENSIONS = ["json", "yaml", "yml"];
