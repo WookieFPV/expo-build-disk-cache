@@ -44,16 +44,7 @@ npm install --save-dev expo-build-disk-cache
 ```
 
 
----
-
-## ⚠️ How It Works & Limitations
-
-This plugin hooks into Expo's `buildCacheProvider` API, which is only consulted by **`npx expo run:android`** and **`npx expo run:ios`**.
-
-- ✅ Works with `expo run:android` / `expo run:ios` (including in CI, e.g. for E2E tests on a simulator/emulator).
-- ❌ Does **not** cache builds produced by `expo prebuild` + a separate native build step (Gradle, Fastlane, `eas build --local`, Xcode, etc.) — those commands never call the build cache provider, so there's nothing for this plugin to intercept.
-
-If your CI pipeline builds natively without `expo run`, this plugin won't help — see [#24](https://github.com/WookieFPV/expo-build-disk-cache/issues/24) for the full discussion.
+> ⚠️ Only `expo run:android` / `expo run:ios` use Expo's build cache provider. Builds run via `expo prebuild` + Gradle/Xcode/Fastlane/EAS are not cached ([#24](https://github.com/WookieFPV/expo-build-disk-cache/issues/24)).
 
 ---
 

@@ -69,7 +69,7 @@ By default, the cache is stored in the system temporary directory, which may be 
 
 **expo-build-disk-cache** can be used in CI/CD environments by preserving the entire cache directory between workflow runs.
 
-> **Important:** the cache is only consulted by `expo run:android` / `expo run:ios`. If your CI pipeline runs `expo prebuild` and then builds natively (Gradle, Fastlane, `eas build --local`, Xcode, etc.), this plugin has no effect — those commands don't go through Expo's build cache provider API. This setup works well for CI jobs that run `expo run:*` to launch E2E tests on a simulator/emulator.
+> **Important:** your CI job has to build with `expo run:android` / `expo run:ios`. Native builds after `expo prebuild` (Gradle, Xcode, Fastlane, EAS) don't use the build cache provider.
 
 ### Setup Instructions
 
