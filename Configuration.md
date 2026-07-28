@@ -69,6 +69,8 @@ By default, the cache is stored in the system temporary directory, which may be 
 
 **expo-build-disk-cache** can be used in CI/CD environments by preserving the entire cache directory between workflow runs.
 
+> **Important:** your CI job has to build with `expo run:android` / `expo run:ios`. Native builds after `expo prebuild` (Gradle, Xcode, Fastlane, EAS) don't use the build cache provider.
+
 ### Setup Instructions
 
 1. Configure a cache directory in your project settings or via the `$DISK_CACHE_CACHE_DIR` environment variable (recommended: `node_modules/.expo-build-disk-cache`)

@@ -44,6 +44,8 @@ npm install --save-dev expo-build-disk-cache
 ```
 
 
+> ⚠️ Only `expo run:android` / `expo run:ios` use Expo's build cache provider. Builds run via `expo prebuild` + Gradle/Xcode/Fastlane/EAS are not cached ([#24](https://github.com/WookieFPV/expo-build-disk-cache/issues/24)).
+
 ---
 
 See the full [Configuration Guide](./Configuration.md) for advanced options, cache cleanup, CI setup, and remote caching.

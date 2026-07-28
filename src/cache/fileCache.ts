@@ -76,7 +76,7 @@ export const fileCacheFactory = (
 			const mtimeMs = stats.mtimeMs;
 			const ageMs = now - mtimeMs;
 			const ageDays = ageMs / (1000 * 60 * 60 * 24);
-			const shouldDelete = ageDays > cacheGcTimeDays && !appPath?.includes(file);
+			const shouldDelete = ageDays > cacheGcTimeDays && path.basename(appPath) !== file;
 
 			if (file.endsWith(".apk") && stats.isFile()) {
 				logger.debug(
