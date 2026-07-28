@@ -1,0 +1,85 @@
+name: package compatibility
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+
+permissions:
+  contents: read
+
+jobs:
+  package-manager:
+    name: Expo config ${{ matrix.expo-config }} / ${{ matrix.package-manager }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        expo-config:
+          - "~11.0.13"
+          - "~12.0.14"
+          - "~55.0.19"
+          - "~56.0.13"
+        package-manager:
+          - npm
+          - pnpm
+          - yarn
+          - bun
+
+    steps:
+      - uses: actions/checkout@de0fac2e4505abe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Build package
+        run: |
+          bun install --frozen-lockfile
+          bun run build
+          echo "PACKAGE_TARBALL=$(npm pack --silent --pack-destination "$RUNNER_TEMP")" >> "$GITHUB_ENV"
+          echo "CONSUMER_ROOT=$RUNNER_TEMP/consumer" >> "$GITHUB_ENV"
+
+      - name: Create consumer fixture
+        run: >-
+          node scripts/compatibility-fixture.mjs prepare
+          "$CONSUMER_ROOT"
+          "${{ matrix.expo-config }}"
+          "$RUNNER_TEMP/$PACKAGE_TARBALL"
+
+      - name: Install with npm legacy peer deps
+        if: matrix.package-manager == 'npm'
+        working-directory: ${{ runner.temp }}/consumer
+        run: npm install --legacy-peer-deps
+
+      - name: Install with pnpm
+        if: matrix.package-manager == 'pnpm'
+        working-directory: ${{ runner.temp }}/consumer
+        run: |
+          corepack enable
+          corepack prepare pnpm@10 --activate
+          pnpm install
+
+      - name: Install with Yarn
+        if: matrix.package-manager == 'yarn'
+        working-directory: ${{ runner.temp }}/consumer
+        run: |
+          corepack enable
+          corepack prepare yarn@1.22.22 --activate
+          yarn install
+
+      - name: Install with Bun
+        if: matrix.package-manager == 'bun'
+        working-directory: ${{ runner.temp }}/consumer
+        run: bun install
+
+      - name: Verify disk, custom remote, and EAS configurations
+        run: node scripts/compatibility-fixture.mjs verify "$CONSUMER_ROOT"

@@ -12,7 +12,7 @@ import {
 	configFilePaths,
 	type NumberLike,
 	parseBooleanLike,
-	parseJsonLike,
+	parseJsonLikeResult,
 	parseNumberLike,
 	readEnvValue,
 } from "./configHelper.ts";
@@ -85,10 +85,10 @@ function parseConfig(input: Partial<ConfigInput>): Config {
 	const remotePluginValue = readEnvValue(input.remotePlugin, `${ENV_PREFIX}REMOTE_PLUGIN`);
 	const remotePlugin = typeof remotePluginValue === "string" ? remotePluginValue : undefined;
 
-	const remoteOptions = parseJsonLike(
+	const remoteOptionsResult = parseJsonLikeResult(
 		readEnvValue(input.remoteOptions, `${ENV_PREFIX}REMOTE_OPTIONS`),
-		undefined,
 	);
+	if (!remoteOptionsResult.success) return defaultConfig;
 
 	return {
 		cacheDir,
@@ -102,7 +102,7 @@ function parseConfig(input: Partial<ConfigInput>): Config {
 			defaultConfig.cacheGcTimeDays,
 		),
 		remotePlugin,
-		remoteOptions,
+		remoteOptions: remoteOptionsResult.data,
 		getPath: (args: ResolveBuildCacheProps) => getCachedAppPath({ ...args, cacheDir }),
 	};
 }

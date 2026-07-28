@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import os from "node:os";
+import path from "node:path";
 import type { ResolveBuildCacheProps } from "@expo/config";
 import DiskBuildCacheProvider from "../index.ts";
 import { mockAppBuild } from "./mockAppBuild.ts";
@@ -59,7 +60,9 @@ describe("resolveBuildCache", () => {
 
 	it("should use cacheDir from args when resolving and uploading build cache", async () => {
 		const options = { ...baseOptions, fingerprintHash: crypto.randomUUID() };
-		const args = { cacheDir: "~/my-cache-dir/" };
+		const args = {
+			cacheDir: path.join(os.tmpdir(), "expo-disk-cache-provider-tests", crypto.randomUUID()),
+		};
 
 		const resultRead1 = await DiskBuildCacheProvider.resolveBuildCache(options, args);
 		expect(resultRead1).toBeNull();
@@ -72,6 +75,6 @@ describe("resolveBuildCache", () => {
 			args,
 		);
 		expect(resultWrite).toBeString();
-		expect(resultWrite).toInclude(args.cacheDir.replace("~", os.homedir));
+		expect(resultWrite).toInclude(args.cacheDir);
 	});
 });

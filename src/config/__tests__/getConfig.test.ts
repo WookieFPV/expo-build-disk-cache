@@ -62,6 +62,18 @@ describe("getConfig", () => {
 		expect(config.cacheDir).toEqual("/foo/bar/cache");
 	});
 
+	it("parses boolean-like and number-like appConfig values", () => {
+		const config = getConfig({
+			enable: "no",
+			debug: 1,
+			cacheGcTimeDays: "0",
+		});
+
+		expect(config.enable).toBe(false);
+		expect(config.debug).toBe(true);
+		expect(config.cacheGcTimeDays).toBe(0);
+	});
+
 	it("prefers appConfig over environment variables", () => {
 		// Set environment variables
 		process.env.DISK_CACHE_ENABLE = "false";
@@ -75,6 +87,75 @@ describe("getConfig", () => {
 
 		expect(config.enable).toEqual(false);
 		expect(config.debug).toEqual(false);
+	});
+
+	it("merges appConfig and config-file-style remoteOptions input", () => {
+		const config = getConfig({
+			remoteOptions: {
+				appValue: true,
+				sharedValue: "from-app-config",
+			},
+		});
+
+		expect(config.remoteOptions).toEqual({
+			appValue: true,
+			sharedValue: "from-app-config",
+		});
+	});
+
+	it("uses DISK_CACHE_REMOTE_OPTIONS over direct remoteOptions input", () => {
+		process.env.DISK_CACHE_REMOTE_OPTIONS = JSON.stringify({
+			envValue: 123,
+			sharedValue: "from-env",
+		});
+
+		const config = getConfig({
+			remoteOptions: {
+				appValue: true,
+				sharedValue: "from-app-config",
+			},
+		});
+
+		expect(config.remoteOptions).toEqual({
+			envValue: 123,
+			sharedValue: "from-env",
+		});
+	});
+
+	it("falls back to default config when DISK_CACHE_REMOTE_OPTIONS is invalid JSON", () => {
+		process.env.DISK_CACHE_REMOTE_OPTIONS = "{invalid:json}";
+
+		const config = getConfig({
+			cacheDir: "/custom/path",
+			enable: false,
+			debug: true,
+			cacheGcTimeDays: 42,
+			remoteOptions: {
+				appValue: true,
+			},
+		});
+
+		expect(config).toMatchObject({
+			enable: true,
+			debug: false,
+			cacheGcTimeDays: 7,
+		});
+		expect(config.cacheDir).not.toBe("/custom/path");
+		expect(config.remoteOptions).toBeUndefined();
+	});
+
+	it("falls back to default config when DISK_CACHE_REMOTE_OPTIONS is not an object", () => {
+		process.env.DISK_CACHE_REMOTE_OPTIONS = "[]";
+
+		const config = getConfig({
+			enable: false,
+			remoteOptions: {
+				appValue: true,
+			},
+		});
+
+		expect(config.enable).toBe(true);
+		expect(config.remoteOptions).toBeUndefined();
 	});
 
 	it("returns cached config if called again without appConfig", () => {

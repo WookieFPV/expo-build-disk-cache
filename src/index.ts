@@ -12,9 +12,19 @@ import {
 } from "./config/config";
 import { withConfig } from "./config/withConfig.ts";
 import { logger } from "./logger.ts";
-import { getRemotePlugin } from "./remotePlugin/getRemotePlugin.ts";
 import { texts } from "./texts.ts";
 import { tryCatch } from "./utils/tryCatch.ts";
+
+async function loadRemotePlugin(
+	args: ResolveBuildCacheProps | UploadBuildCacheProps,
+	config: Config,
+) {
+	const { getRemotePlugin } = await import("./remotePlugin/getRemotePlugin.ts");
+	return getRemotePlugin(args, {
+		remotePlugin: config.remotePlugin,
+		remoteOptions: config.remoteOptions,
+	});
+}
 
 async function readFromDisk(args: ResolveBuildCacheProps, config: Config): Promise<string | null> {
 	try {
@@ -30,10 +40,7 @@ async function readFromDisk(args: ResolveBuildCacheProps, config: Config): Promi
 		logger.log(texts.read.miss);
 		if (config.remotePlugin) {
 			try {
-				const remotePluginProvider = await getRemotePlugin(args, {
-					remotePlugin: config.remotePlugin,
-					remoteOptions: config.remoteOptions,
-				});
+				const remotePluginProvider = await loadRemotePlugin(args, config);
 
 				const downloadPath = await remotePluginProvider?.resolveBuildCache(
 					args,
@@ -70,10 +77,7 @@ async function writeToDisk(args: UploadBuildCacheProps, config: Config): Promise
 		await fileCache.printStats();
 		if (config.remotePlugin) {
 			try {
-				const remotePluginProvider = await getRemotePlugin(args, {
-					remotePlugin: config.remotePlugin,
-					remoteOptions: config.remoteOptions,
-				});
+				const remotePluginProvider = await loadRemotePlugin(args, config);
 				await remotePluginProvider?.uploadBuildCache(args, config.remoteOptions);
 			} catch (_e) {
 				logger.log(texts.write.remoteError);

@@ -46,24 +46,35 @@ export const parseNumberLike = (value: NumberLike | undefined, defaultValue: num
 	return parsedValue;
 };
 
-export const parseJsonLike = (
+export type JsonLikeParseResult =
+	| { success: true; data: Record<string, unknown> | undefined }
+	| { success: false };
+
+export const parseJsonLikeResult = (
 	value: Record<string, unknown> | string | undefined,
-	defaultValue: Record<string, unknown> | undefined,
-): Record<string, unknown> | undefined => {
-	if (value === undefined) return defaultValue;
-	if (typeof value !== "string") return value;
+): JsonLikeParseResult => {
+	if (value === undefined) return { success: true, data: undefined };
+	if (typeof value !== "string") return { success: true, data: value };
 
 	try {
 		const parsedValue: unknown = JSON.parse(value);
 		if (parsedValue && typeof parsedValue === "object" && !Array.isArray(parsedValue)) {
-			return parsedValue as Record<string, unknown>;
+			return { success: true, data: parsedValue as Record<string, unknown> };
 		}
 		logger.warn(texts.config.invalidValue(value));
-		return defaultValue;
+		return { success: false };
 	} catch (error) {
 		logger.error(texts.config.invalidFile(error instanceof Error ? error.message : String(error)));
-		return defaultValue;
+		return { success: false };
 	}
+};
+
+export const parseJsonLike = (
+	value: Record<string, unknown> | string | undefined,
+	defaultValue: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined => {
+	const result = parseJsonLikeResult(value);
+	return result.success ? result.data : defaultValue;
 };
 
 const FILE_EXTENSIONS = ["json", "yaml", "yml"];

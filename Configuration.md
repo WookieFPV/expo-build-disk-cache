@@ -91,7 +91,13 @@ _Remote caching solutions only transfer files needed for the current build, sign
 
 ## Using with EAS Remote Build Cache Provider
 
-Enable EAS remote caching by setting `remotePlugin` to `eas` in your options:
+Install the optional EAS provider in your Expo project:
+
+```sh
+npm install --save-dev eas-build-cache-provider
+```
+
+Then enable EAS remote caching by setting `remotePlugin` to `eas` in your options:
 
 ```json
 {
@@ -103,3 +109,6 @@ Enable EAS remote caching by setting `remotePlugin` to `eas` in your options:
   }
 }
 ```
+
+Remote providers are resolved relative to the Expo project. The disk cache does not load remote
+provider code unless `remotePlugin` is configured.

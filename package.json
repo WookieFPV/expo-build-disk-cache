@@ -56,11 +56,9 @@
 		"lefthook": "2.1.9",
 		"tsup": "8.5.1",
 		"typescript": "6.0.3",
-		"@expo/cli": "56.1.16",
 		"@expo/config": "56.0.9"
 	},
 	"peerDependencies": {
-		"@expo/cli": "*",
 		"@expo/config": "*"
 	},
 	"engines": {

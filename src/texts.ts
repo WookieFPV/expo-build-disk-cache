@@ -15,8 +15,14 @@ export const texts = {
 			}`,
 	},
 	remotePlugin: {
-		loadError: (remotePlugin: string | undefined) =>
-			`💾[remote] failed to load plugin "${remotePlugin}"`,
+		missing: (remotePlugin: string, projectRoot: string) =>
+			`💾[remote] Optional provider "${remotePlugin}" was not found from "${projectRoot}". Install it with: npm install --save-dev ${remotePlugin}`,
+		loadError: (remotePlugin: string, error: unknown) =>
+			`💾[remote] Failed to load provider "${remotePlugin}": ${
+				error instanceof Error ? error.message : String(error)
+			}`,
+		invalid: (remotePlugin: string) =>
+			`💾[remote] Invalid provider "${remotePlugin}". It must export resolveBuildCache and uploadBuildCache functions.`,
 	},
 	config: {
 		invalidBool: (value: string) => `Invalid boolean-like value: ${value}`,
