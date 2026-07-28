@@ -1,124 +1,90 @@
 import { afterEach, describe, expect, it } from "bun:test";
-import { z } from "zod";
-import {
-	booleanLikeSchema,
-	createEnvAwareSchema,
-	jsonLikeSchema,
-	numberLikeSchema,
-} from "../configHelper";
+import { parseBooleanLike, parseJsonLike, parseNumberLike, readEnvValue } from "../configHelper";
 
-describe("createEnvAwareSchema", () => {
+describe("config parsing helpers", () => {
 	const ENV_NAME = "TEST_ENV_VAR";
 
 	afterEach(() => {
 		delete process.env[ENV_NAME];
 	});
 
-	describe("numberLikeSchema", () => {
+	describe("readEnvValue", () => {
 		it("should use direct input when env var is not set", () => {
-			const schema = createEnvAwareSchema(numberLikeSchema, ENV_NAME);
-			const result = schema.parse(42);
+			const result = readEnvValue(42, ENV_NAME);
 			expect(result).toBe(42);
 		});
 
 		it("should prioritize env var over direct input when both are provided", () => {
 			process.env[ENV_NAME] = "123";
-			const schema = createEnvAwareSchema(numberLikeSchema, ENV_NAME);
-			const result = schema.parse(42);
-			expect(result).toBe(123);
+			const result = readEnvValue(42, ENV_NAME);
+			expect(result).toBe("123");
 		});
 
 		it("should ignore empty string env vars and use direct input", () => {
 			process.env[ENV_NAME] = "";
-			const schema = createEnvAwareSchema(numberLikeSchema, ENV_NAME);
-			const result = schema.parse("3");
+			const result = readEnvValue("3", ENV_NAME);
+			expect(result).toBe("3");
+		});
+	});
+
+	describe("parseNumberLike", () => {
+		it("should parse direct number-like input", () => {
+			const result = parseNumberLike("3", 7);
 			expect(result).toBe(3);
 		});
 
-		it("should throw when env var contains invalid number", () => {
-			process.env[ENV_NAME] = "not_a_number";
-			const schema = createEnvAwareSchema(numberLikeSchema, ENV_NAME);
-			expect(() => schema.parse("ignored")).toThrow();
+		it("should use default value when input is undefined", () => {
+			const result = parseNumberLike(undefined, 7);
+			expect(result).toBe(7);
+		});
+
+		it("should return the default value when input is invalid", () => {
+			const result = parseNumberLike("not_a_number", 7);
+			expect(result).toBe(7);
 		});
 	});
 
-	describe("default values", () => {
-		it("should use default value when env var is not set and input is undefined", () => {
-			const schema = createEnvAwareSchema(z.string().default("default"), ENV_NAME);
-			const result = schema.parse(undefined);
-			expect(result).toBe("default");
-		});
-
-		it("should prioritize env var over default value", () => {
-			process.env[ENV_NAME] = "env_value";
-			const schema = createEnvAwareSchema(z.string().default("default"), ENV_NAME);
-			const result = schema.parse(undefined);
-			expect(result).toBe("env_value");
-		});
-	});
-
-	describe("booleanLikeSchema", () => {
-		it("should parse truthy string values from env var", () => {
-			process.env[ENV_NAME] = "yes";
-			const schema = createEnvAwareSchema(booleanLikeSchema, ENV_NAME);
-			const result = schema.parse(undefined);
+	describe("parseBooleanLike", () => {
+		it("should parse truthy string values", () => {
+			const result = parseBooleanLike("yes", false);
 			expect(result).toBe(true);
 		});
 
-		it("should parse falsy string values from env var", () => {
-			process.env[ENV_NAME] = "false";
-			const schema = createEnvAwareSchema(booleanLikeSchema, ENV_NAME);
-			const result = schema.parse("true");
+		it("should parse falsy string values", () => {
+			const result = parseBooleanLike("false", true);
 			expect(result).toBe(false);
 		});
 
-		it("should parse truthy string values from direct input", () => {
-			const schema = createEnvAwareSchema(booleanLikeSchema, ENV_NAME);
-			const result = schema.parse("yes");
+		it("should parse number values", () => {
+			expect(parseBooleanLike(1, false)).toBe(true);
+			expect(parseBooleanLike(0, true)).toBe(false);
+		});
+
+		it("should return the default value when input is invalid", () => {
+			const result = parseBooleanLike("not-a-boolean", true);
 			expect(result).toBe(true);
-		});
-
-		it("should parse falsy string values from direct input", () => {
-			const schema = createEnvAwareSchema(booleanLikeSchema, ENV_NAME);
-			const result = schema.parse("no");
-			expect(result).toBe(false);
 		});
 	});
 
-	describe("jsonLikeSchema", () => {
-		it("should parse JSON string from env var", () => {
-			process.env[ENV_NAME] = JSON.stringify({ foo: 42 });
-			const schema = createEnvAwareSchema(jsonLikeSchema, ENV_NAME);
-			const result = schema.parse(undefined);
+	describe("parseJsonLike", () => {
+		it("should parse JSON strings", () => {
+			const result = parseJsonLike(JSON.stringify({ foo: 42 }), undefined);
 			expect(result).toEqual({ foo: 42 });
 		});
 
-		it("should prioritize env var JSON over direct input", () => {
-			process.env[ENV_NAME] = JSON.stringify({ foo: 42 });
-			const schema = createEnvAwareSchema(jsonLikeSchema, ENV_NAME);
-			const result = schema.parse({ foo: 404 });
-			expect(result).toEqual({ foo: 42 });
-		});
-
-		it("should use direct input object when env var is not set", () => {
-			const schema = createEnvAwareSchema(jsonLikeSchema, ENV_NAME);
-			const result = schema.parse({ foo: 101 });
+		it("should return object input", () => {
+			const result = parseJsonLike({ foo: 101 }, undefined);
 			expect(result).toEqual({ foo: 101 });
 		});
 
-		it("should throw when env var contains invalid JSON", () => {
-			process.env[ENV_NAME] = "{invalid:json}";
-			const schema = createEnvAwareSchema(jsonLikeSchema, ENV_NAME);
-			expect(() => schema.parse(undefined)).toThrow();
+		it("should return the default value when JSON is invalid", () => {
+			const result = parseJsonLike("{invalid:json}", { fallback: true });
+			expect(result).toEqual({ fallback: true });
 		});
-	});
 
-	describe("error handling", () => {
-		it("should fail validation with safeParse when env var is invalid", () => {
-			process.env[ENV_NAME] = "not_a_number";
-			const schema = createEnvAwareSchema(numberLikeSchema, ENV_NAME);
-			const result = schema.safeParse("ignored");
-			expect(result.success).toBe(false);
+		it("should return the default value when JSON is not an object", () => {
+			const result = parseJsonLike("42", { fallback: true });
+			expect(result).toEqual({ fallback: true });
 		});
 	});
 });

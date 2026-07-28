@@ -45,8 +45,7 @@
 	},
 	"dependencies": {
 		"cosmiconfig": "^9.0.0",
-		"env-paths": "^2.2.1",
-		"zod": "^4.0.0"
+		"env-paths": "^2.2.1"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.0",

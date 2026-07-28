@@ -1,7 +1,6 @@
 import type { ResolveBuildCacheProps } from "@expo/config";
 import { cosmiconfigSync } from "cosmiconfig";
 import envPaths from "env-paths";
-import { z } from "zod";
 import { getCachedAppPath } from "../buildCache.ts";
 import { getDefaultCacheDir } from "../cache/cacheDirectory.ts";
 import { logger } from "../logger.ts";
@@ -9,14 +8,13 @@ import { dedupeArray } from "../utils/dedupeArray.ts";
 import { xdgConfig } from "../utils/npmXdgBasedir.ts";
 import {
 	type BooleanLike,
-	booleanLikeSchema,
 	cleanupPath,
 	configFilePaths,
-	createEnvAwareSchema,
-	handleZodError,
-	jsonLikeSchema,
 	type NumberLike,
-	numberLikeSchema,
+	parseBooleanLike,
+	parseJsonLike,
+	parseNumberLike,
+	readEnvValue,
 } from "./configHelper.ts";
 
 const configName = "disk-cache";
@@ -79,35 +77,35 @@ const defaultConfig = {
 
 const ENV_PREFIX = "DISK_CACHE_" as const;
 
-const configSchema = z
-	.object({
-		cacheDir: createEnvAwareSchema(z.string().optional(), `${ENV_PREFIX}CACHE_DIR`)
-			.default(getDefaultCacheDir())
-			.transform(cleanupPath),
-		enable: createEnvAwareSchema(booleanLikeSchema.optional(), `${ENV_PREFIX}ENABLE`)
-			.default(defaultConfig.enable)
-			.catch(handleZodError(defaultConfig.enable)),
-		debug: createEnvAwareSchema(booleanLikeSchema.optional(), `${ENV_PREFIX}DEBUG`)
-			.default(defaultConfig.debug)
-			.catch(handleZodError(defaultConfig.debug)),
-		cacheGcTimeDays: createEnvAwareSchema(numberLikeSchema.optional(), `${ENV_PREFIX}GC_TIME_DAYS`)
-			.default(defaultConfig.cacheGcTimeDays)
-			.catch(handleZodError(defaultConfig.cacheGcTimeDays)),
-		remotePlugin: createEnvAwareSchema(
-			z.string().optional(),
-			`${ENV_PREFIX}REMOTE_PLUGIN`,
-		).optional(),
-		remoteOptions: createEnvAwareSchema(
-			jsonLikeSchema.optional(),
-			`${ENV_PREFIX}REMOTE_OPTIONS`,
-		).optional(),
-	})
-	.transform((data) => ({
-		...data,
-		getPath: (args: ResolveBuildCacheProps) =>
-			getCachedAppPath({ ...args, cacheDir: data.cacheDir }),
-	}))
-	.catch(handleZodError(defaultConfig));
+function parseConfig(input: Partial<ConfigInput>): Config {
+	const cacheDirValue = readEnvValue(input.cacheDir, `${ENV_PREFIX}CACHE_DIR`);
+	const cacheDir =
+		typeof cacheDirValue === "string" ? cleanupPath(cacheDirValue) : defaultConfig.cacheDir;
+
+	const remotePluginValue = readEnvValue(input.remotePlugin, `${ENV_PREFIX}REMOTE_PLUGIN`);
+	const remotePlugin = typeof remotePluginValue === "string" ? remotePluginValue : undefined;
+
+	const remoteOptions = parseJsonLike(
+		readEnvValue(input.remoteOptions, `${ENV_PREFIX}REMOTE_OPTIONS`),
+		undefined,
+	);
+
+	return {
+		cacheDir,
+		enable: parseBooleanLike(
+			readEnvValue(input.enable, `${ENV_PREFIX}ENABLE`),
+			defaultConfig.enable,
+		),
+		debug: parseBooleanLike(readEnvValue(input.debug, `${ENV_PREFIX}DEBUG`), defaultConfig.debug),
+		cacheGcTimeDays: parseNumberLike(
+			readEnvValue(input.cacheGcTimeDays, `${ENV_PREFIX}GC_TIME_DAYS`),
+			defaultConfig.cacheGcTimeDays,
+		),
+		remotePlugin,
+		remoteOptions,
+		getPath: (args: ResolveBuildCacheProps) => getCachedAppPath({ ...args, cacheDir }),
+	};
+}
 
 let config: Config | null = null;
 
@@ -122,7 +120,7 @@ export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config 
 	try {
 		const configResult = explorerSync.search();
 
-		const parseResult = configSchema.safeParse({
+		config = parseConfig({
 			...defaultConfig,
 			...appConfig,
 			...configResult?.config,
@@ -131,16 +129,6 @@ export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config 
 				...(configResult?.config?.remoteOptions ?? {}),
 			},
 		});
-		if (!parseResult.success) {
-			logger.log("Config validation failed, ignoring config files. error:", parseResult.error);
-			if (configResult?.filepath)
-				logger.log(
-					`Used config file: ${configResult?.filepath} with content: ${JSON.stringify(configResult?.config)}, appConfig: ${JSON.stringify(appConfig)}`,
-				);
-			if (appConfig) logger.log(`Used appConfig: ${JSON.stringify(appConfig)}`);
-			return defaultConfig;
-		}
-		config = parseResult.data;
 
 		if (config.debug) {
 			logger.debug("expo-build-disk-cache config:");
