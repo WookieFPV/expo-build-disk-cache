@@ -2,7 +2,9 @@ import { describe, expect, it } from "bun:test";
 import os from "node:os";
 import type { ResolveBuildCacheProps } from "@expo/config";
 import DiskBuildCacheProvider from "../index.ts";
+import { texts } from "../texts.ts";
 import { mockAppBuild } from "./mockAppBuild.ts";
+import { mockLogger } from "./test-setup.ts";
 
 const baseOptions: Omit<ResolveBuildCacheProps, "fingerprintHash"> = {
 	platform: "android",
@@ -44,6 +46,7 @@ describe("resolveBuildCache", () => {
 
 		const resultRead1 = await DiskBuildCacheProvider.resolveBuildCache(options, args);
 		expect(resultRead1).toBeNull();
+		expect(mockLogger.log).toHaveBeenLastCalledWith(texts.read.miss);
 
 		const buildPath = await mockAppBuild(options.fingerprintHash);
 
@@ -52,9 +55,11 @@ describe("resolveBuildCache", () => {
 			args,
 		);
 		expect(resultWrite).toBeString();
+		expect(mockLogger.log).toHaveBeenLastCalledWith(texts.write.savedToDisk(resultWrite as string));
 
 		const resultRead2 = await DiskBuildCacheProvider.resolveBuildCache(options, args);
 		expect(resultRead2).toBeString();
+		expect(mockLogger.log).toHaveBeenLastCalledWith(texts.read.hit);
 	});
 
 	it("should use cacheDir from args when resolving and uploading build cache", async () => {

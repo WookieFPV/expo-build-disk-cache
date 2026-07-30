@@ -36,6 +36,7 @@
 		"build:dev": "tsup --watch --clean false",
 		"changeset": "changeset",
 		"test": "bun test",
+		"test:perf": "PERF_TESTS=1 bun test src/__tests__/resolveBuildCache.perf.test.ts",
 		"lint": "bunx biome check --fix",
 		"lint:CI": "bunx biome check",
 		"release": "changeset publish",
