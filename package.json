@@ -36,6 +36,7 @@
 		"build:dev": "tsup --watch --clean false",
 		"changeset": "changeset",
 		"test": "bun test",
+		"test:perf": "PERF_TESTS=1 bun test src/__tests__/resolveBuildCache.perf.test.ts",
 		"lint": "bunx biome check --fix",
 		"lint:CI": "bunx biome check",
 		"release": "changeset publish",
@@ -45,8 +46,7 @@
 	},
 	"dependencies": {
 		"cosmiconfig": "^9.0.0",
-		"env-paths": "^2.2.1",
-		"zod": "^4.0.0"
+		"env-paths": "^2.2.1"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.0",

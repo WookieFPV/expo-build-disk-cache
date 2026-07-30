@@ -1,35 +1,20 @@
 import os from "node:os";
 import path from "node:path";
-import { z } from "zod";
-import { logger } from "../logger.ts";
 import { texts } from "../texts.ts";
 
 export type NumberLike = boolean | string | number;
-export const numberLikeSchema = z.coerce.number();
-
 export type BooleanLike = boolean | string | number;
-export const booleanLikeSchema = z
-	.union([z.boolean(), z.string(), z.number()])
-	.transform((value): boolean => {
-		if (typeof value === "boolean") return value;
-		if (typeof value === "number") return value !== 0;
-		const lowerValue = value.toLowerCase();
-		if (lowerValue === "true" || lowerValue === "1" || lowerValue === "yes") {
-			return true;
-		}
-		if (lowerValue === "false" || lowerValue === "0" || lowerValue === "no") {
-			return false;
-		}
-		logger.log(texts.config.invalidBool(value));
-		return false;
-	});
 
-export const jsonLikeSchema = z
-	.union([z.object().loose(), z.string()])
-	.transform((value): Record<string, unknown> => {
-		if (typeof value === "string") return JSON.parse(value) as Record<string, unknown>;
-		return value;
-	});
+/**
+ * Config values come from untrusted sources (config files, env vars, app config), so every parser
+ * takes `unknown` and falls back to the default instead of throwing.
+ *
+ * Problems are collected into this array instead of being logged directly, so that getConfig can
+ * report all of them at once and reporting stays out of this module (which also keeps it free of
+ * the `logger` -> `config` import cycle). `label` names the option in those messages and may
+ * include where it came from.
+ */
+export type ConfigIssues = string[];
 
 /**
  * regex specifically targets ~ at the beginning of the string followed by the end of the string or a path separator, preventing unintended replacements.
@@ -39,25 +24,140 @@ const regex = /^~(?=$|\/|\\)/;
 export const cleanupPath = (cacheDir: string) =>
 	path.resolve(cacheDir.replace(regex, os.homedir()));
 
-/**
- * Zod Error Handling
- * Supports Zod V3 and V4 at the same time
- * @param defaultValue - Default value to return in case of error
- */
-export const handleZodError = <T>(defaultValue: T) => {
-	return (ctx: z.core.$ZodCatchCtx) => {
-		// Zod V4 Error Handling:
-		if ("issues" in ctx && Array.isArray(ctx.issues)) {
-			for (const issue of ctx.issues) {
-				logger.warn(texts.config.invalidValue(issue.message));
-			}
-			// Zod V3 Error Handling:
-		} else if ("error" in ctx && ctx.error && ctx.error instanceof Error) {
-			logger.error(texts.config.invalidFile(ctx.error.message));
+/** JSON quotes strings, which keeps blank and whitespace-only values visible in a warning. */
+const describeValue = (value: unknown): string => {
+	if (typeof value === "string" || (typeof value === "object" && value !== null)) {
+		try {
+			return JSON.stringify(value);
+		} catch {
+			return Object.prototype.toString.call(value);
 		}
+	}
+	return String(value);
+};
 
+const describeFallback = (defaultValue: unknown): string =>
+	defaultValue === undefined ? "ignoring it" : `using default: ${describeValue(defaultValue)}`;
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+	typeof value === "object" && value !== null && !Array.isArray(value);
+
+/**
+ * Config sources are untyped at runtime: a config file may contain a bare string or array, and the
+ * app config is whatever the user wrote in `app.json`. Anything that is not a plain object cannot
+ * be read key by key (`"key" in "some string"` throws), so it is dropped here instead.
+ */
+export const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+	isPlainObject(value) ? value : undefined;
+
+/**
+ * Environment variables take precedence over every other config source.
+ * An unset or empty env var falls through to the value that was passed in.
+ */
+export const readEnvValue = <T>(value: T, envName: string): T | string => {
+	const envVar = process.env[envName];
+	if (envVar) return envVar;
+	return value;
+};
+
+const TRUE_VALUES = ["true", "1", "yes", "on"];
+const FALSE_VALUES = ["false", "0", "no", "off"];
+
+export const parseBooleanLike = (
+	value: unknown,
+	label: string,
+	defaultValue: boolean,
+	issues: ConfigIssues = [],
+): boolean => {
+	// `null` is how JSON/YAML spell "no value", so treat it like an absent key.
+	if (value === undefined || value === null) return defaultValue;
+	if (typeof value === "boolean") return value;
+	if (typeof value === "number" && !Number.isNaN(value)) return value !== 0;
+
+	if (typeof value === "string") {
+		const lowerValue = value.trim().toLowerCase();
+		if (TRUE_VALUES.includes(lowerValue)) return true;
+		if (FALSE_VALUES.includes(lowerValue)) return false;
+	}
+
+	issues.push(
+		texts.config.invalidBool(label, describeValue(value), describeFallback(defaultValue)),
+	);
+	return defaultValue;
+};
+
+export const parseNumberLike = (
+	value: unknown,
+	label: string,
+	defaultValue: number,
+	issues: ConfigIssues = [],
+): number => {
+	if (value === undefined || value === null) return defaultValue;
+
+	const isNumberLike =
+		typeof value === "number" ||
+		typeof value === "boolean" ||
+		(typeof value === "string" && value.trim() !== "");
+
+	// Number.isFinite also rejects NaN and +/-Infinity, which would silently disable cache cleanup.
+	const parsedValue = isNumberLike ? Number(value) : Number.NaN;
+	if (!Number.isFinite(parsedValue)) {
+		issues.push(
+			texts.config.invalidValue(label, describeValue(value), describeFallback(defaultValue)),
+		);
 		return defaultValue;
-	};
+	}
+	return parsedValue;
+};
+
+export const parseStringLike = <T extends string | undefined>(
+	value: unknown,
+	label: string,
+	defaultValue: T,
+	issues: ConfigIssues = [],
+): string | T => {
+	if (value === undefined || value === null) return defaultValue;
+
+	if (typeof value !== "string" || value.trim() === "") {
+		issues.push(
+			texts.config.invalidValue(label, describeValue(value), describeFallback(defaultValue)),
+		);
+		return defaultValue;
+	}
+	return value;
+};
+
+export const parseJsonLike = (
+	value: unknown,
+	label: string,
+	defaultValue?: Record<string, unknown>,
+	issues: ConfigIssues = [],
+): Record<string, unknown> | undefined => {
+	if (value === undefined || value === null) return defaultValue;
+
+	let parsedValue: unknown = value;
+	if (typeof value === "string") {
+		try {
+			parsedValue = JSON.parse(value);
+		} catch (error) {
+			issues.push(
+				texts.config.invalidJson(
+					label,
+					error instanceof Error ? error.message : String(error),
+					describeFallback(defaultValue),
+				),
+			);
+			return defaultValue;
+		}
+	}
+
+	// Applies to both branches: an array or a bare JSON scalar is not a valid options object.
+	if (isPlainObject(parsedValue)) return parsedValue;
+
+	issues.push(
+		texts.config.invalidValue(label, describeValue(value), describeFallback(defaultValue)),
+	);
+	return defaultValue;
 };
 
 const FILE_EXTENSIONS = ["json", "yaml", "yml"];
@@ -76,14 +176,3 @@ export const configFilePaths = (...paths: string[]) => {
 	}
 	return FILE_EXTENSIONS.map((ext) => `${inputPath}.${ext}`);
 };
-
-export const createEnvAwareSchema = <T extends z.ZodType>(schema: T, envName: string) =>
-	schema
-		.optional()
-		.transform((val) => {
-			const envVar = process.env[envName];
-			// biome-ignore lint/suspicious/noExplicitAny: zod will validate the type at runtime
-			if (envVar && envVar !== "") return envVar as any;
-			return val;
-		})
-		.pipe(schema);
