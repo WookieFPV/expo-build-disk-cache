@@ -9,9 +9,9 @@ export type BooleanLike = boolean | string | number;
  * Config values come from untrusted sources (config files, env vars, app config), so every parser
  * takes `unknown` and falls back to the default instead of throwing.
  *
- * Problems are collected instead of logged directly: this keeps the parsers pure/testable and it
- * lets {@link getConfig} report every issue together with the config sources it read them from.
- * (It also keeps this module free of the `logger` -> `config` import cycle.)
+ * Problems are collected instead of logged directly, so that getConfig can report all of them at
+ * once and the parsers stay pure. (It also keeps this module free of the `logger` -> `config`
+ * import cycle.) `label` names the option in those messages and may include where it came from.
  */
 export type ConfigIssues = string[];
 
@@ -23,9 +23,9 @@ const regex = /^~(?=$|\/|\\)/;
 export const cleanupPath = (cacheDir: string) =>
 	path.resolve(cacheDir.replace(regex, os.homedir()));
 
+/** JSON quotes strings, which keeps blank and whitespace-only values visible in a warning. */
 const describeValue = (value: unknown): string => {
-	if (typeof value === "string") return value;
-	if (typeof value === "object" && value !== null) {
+	if (typeof value === "string" || (typeof value === "object" && value !== null)) {
 		try {
 			return JSON.stringify(value);
 		} catch {
@@ -36,7 +36,7 @@ const describeValue = (value: unknown): string => {
 };
 
 const describeFallback = (defaultValue: unknown): string =>
-	defaultValue === undefined ? "ignoring it" : `using default: ${describeValue(defaultValue)}`;
+	defaultValue === undefined ? "ignoring it" : `using default: ${String(defaultValue)}`;
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
 	typeof value === "object" && value !== null && !Array.isArray(value);
@@ -56,7 +56,7 @@ const FALSE_VALUES = ["false", "0", "no", "off"];
 
 export const parseBooleanLike = (
 	value: unknown,
-	name: string,
+	label: string,
 	defaultValue: boolean,
 	issues: ConfigIssues = [],
 ): boolean => {
@@ -71,13 +71,15 @@ export const parseBooleanLike = (
 		if (FALSE_VALUES.includes(lowerValue)) return false;
 	}
 
-	issues.push(texts.config.invalidBool(name, describeValue(value), describeFallback(defaultValue)));
+	issues.push(
+		texts.config.invalidBool(label, describeValue(value), describeFallback(defaultValue)),
+	);
 	return defaultValue;
 };
 
 export const parseNumberLike = (
 	value: unknown,
-	name: string,
+	label: string,
 	defaultValue: number,
 	issues: ConfigIssues = [],
 ): number => {
@@ -92,7 +94,7 @@ export const parseNumberLike = (
 	const parsedValue = isNumberLike ? Number(value) : Number.NaN;
 	if (!Number.isFinite(parsedValue)) {
 		issues.push(
-			texts.config.invalidValue(name, describeValue(value), describeFallback(defaultValue)),
+			texts.config.invalidValue(label, describeValue(value), describeFallback(defaultValue)),
 		);
 		return defaultValue;
 	}
@@ -101,7 +103,7 @@ export const parseNumberLike = (
 
 export const parseStringLike = <T extends string | undefined>(
 	value: unknown,
-	name: string,
+	label: string,
 	defaultValue: T,
 	issues: ConfigIssues = [],
 ): string | T => {
@@ -109,7 +111,7 @@ export const parseStringLike = <T extends string | undefined>(
 
 	if (typeof value !== "string" || value.trim() === "") {
 		issues.push(
-			texts.config.invalidValue(name, describeValue(value), describeFallback(defaultValue)),
+			texts.config.invalidValue(label, describeValue(value), describeFallback(defaultValue)),
 		);
 		return defaultValue;
 	}
@@ -118,7 +120,7 @@ export const parseStringLike = <T extends string | undefined>(
 
 export const parseJsonLike = (
 	value: unknown,
-	name: string,
+	label: string,
 	defaultValue?: Record<string, unknown>,
 	issues: ConfigIssues = [],
 ): Record<string, unknown> | undefined => {
@@ -131,7 +133,7 @@ export const parseJsonLike = (
 		} catch (error) {
 			issues.push(
 				texts.config.invalidJson(
-					name,
+					label,
 					error instanceof Error ? error.message : String(error),
 					describeFallback(defaultValue),
 				),
@@ -144,7 +146,7 @@ export const parseJsonLike = (
 	if (isPlainObject(parsedValue)) return parsedValue;
 
 	issues.push(
-		texts.config.invalidValue(name, describeValue(value), describeFallback(defaultValue)),
+		texts.config.invalidValue(label, describeValue(value), describeFallback(defaultValue)),
 	);
 	return defaultValue;
 };

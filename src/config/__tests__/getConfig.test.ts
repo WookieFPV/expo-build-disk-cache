@@ -111,7 +111,7 @@ describe("getConfig", () => {
 		expect(config.cacheGcTimeDays).toBe(7);
 	});
 
-	it("warns about invalid values and names the config source", () => {
+	it("warns about invalid values and names the env variable they came from", () => {
 		process.env.DISK_CACHE_GC_TIME_DAYS = "not-a-number";
 
 		getConfig({});
@@ -119,7 +119,26 @@ describe("getConfig", () => {
 		const warnings = mockLogger.warn.mock.calls.flat().join("\n");
 		expect(warnings).toContain("cacheGcTimeDays");
 		expect(warnings).toContain("not-a-number");
-		expect(warnings).toContain("Check your config");
+		expect(warnings).toContain("$DISK_CACHE_GC_TIME_DAYS");
+		expect(warnings).toContain("using default: 7");
+	});
+
+	it("names appConfig as the source when no env variable is set", () => {
+		getConfig({ cacheGcTimeDays: "still-not-a-number" });
+
+		expect(mockLogger.warn.mock.calls.flat().join("\n")).toContain("cacheGcTimeDays in appConfig");
+	});
+
+	it("does not repeat the same warnings on every call", () => {
+		// getConfig runs on every resolve/upload call and cannot use its cache when given options
+		process.env.DISK_CACHE_GC_TIME_DAYS = "not-a-number-either";
+
+		getConfig({});
+		const warnCount = mockLogger.warn.mock.calls.length;
+		getConfig({});
+
+		expect(warnCount).toBeGreaterThan(0);
+		expect(mockLogger.warn.mock.calls.length).toBe(warnCount);
 	});
 
 	it("keeps the remaining config when a single value is invalid", () => {

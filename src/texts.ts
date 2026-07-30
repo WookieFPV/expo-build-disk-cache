@@ -19,12 +19,11 @@ export const texts = {
 			`💾[remote] failed to load plugin "${remotePlugin}"`,
 	},
 	config: {
-		invalidBool: (name: string, value: string, fallback: string) =>
-			`💾 Invalid boolean value for "${name}": ${value} (${fallback})`,
-		invalidValue: (name: string, value: string, fallback: string) =>
-			`💾 Invalid value for "${name}": ${value} (${fallback})`,
-		invalidJson: (name: string, message: string, fallback: string) =>
-			`💾 Invalid JSON for "${name}": ${message} (${fallback})`,
-		checkSources: (sources: string) => `💾 Check your config: ${sources}`,
+		invalidBool: (label: string, value: string, fallback: string) =>
+			`💾 Invalid boolean for ${label}: ${value} (${fallback})`,
+		invalidValue: (label: string, value: string, fallback: string) =>
+			`💾 Invalid value for ${label}: ${value} (${fallback})`,
+		invalidJson: (label: string, message: string, fallback: string) =>
+			`💾 Invalid JSON for ${label}: ${message} (${fallback})`,
 	},
 };

@@ -81,63 +81,92 @@ const defaultConfig = {
 const ENV_PREFIX = "DISK_CACHE_" as const;
 
 /**
- * Config files are read by cosmiconfig and are therefore untyped at runtime: `input` is whatever
- * the user wrote. Every field falls back to its default on its own, so one bad value never
- * discards the rest of the config.
+ * Env variable suffix per option. Deliberately a table and not derived from the key, because
+ * `cacheGcTimeDays` maps to `DISK_CACHE_GC_TIME_DAYS` and not `DISK_CACHE_CACHE_GC_TIME_DAYS`.
  */
-function parseConfig(input: Record<string, unknown>, issues: ConfigIssues): Config {
-	const cacheDir = cleanupPath(
-		parseStringLike(
-			readEnvValue(input.cacheDir, `${ENV_PREFIX}CACHE_DIR`),
-			"cacheDir",
-			defaultConfig.cacheDir,
-			issues,
-		),
-	);
+const ENV_NAMES = {
+	cacheDir: "CACHE_DIR",
+	enable: "ENABLE",
+	debug: "DEBUG",
+	cacheGcTimeDays: "GC_TIME_DAYS",
+	remotePlugin: "REMOTE_PLUGIN",
+	remoteOptions: "REMOTE_OPTIONS",
+} as const satisfies Record<keyof ConfigInput, string>;
 
-	const remotePlugin = parseStringLike(
-		readEnvValue(input.remotePlugin, `${ENV_PREFIX}REMOTE_PLUGIN`),
-		"remotePlugin",
-		undefined,
-		issues,
-	);
+type ConfigKey = keyof typeof ENV_NAMES;
 
-	const remoteOptions = parseJsonLike(
-		readEnvValue(input.remoteOptions, `${ENV_PREFIX}REMOTE_OPTIONS`),
-		"remoteOptions",
-		undefined,
-		issues,
-	);
+/** A config source, in the order it takes precedence (excluding env variables, which always win). */
+type ConfigSource = { label: string; config: Record<string, unknown> | undefined };
+
+/**
+ * Reads options out of the merged (and, since cosmiconfig returns whatever the user wrote,
+ * untyped) input, letting env variables win and collecting problems as it goes. Every option
+ * falls back on its own, so one bad value never discards the rest of the config.
+ */
+const createReader = (input: Record<string, unknown>, sources: ConfigSource[]) => {
+	const issues: ConfigIssues = [];
+
+	const read = (key: ConfigKey) => readEnvValue(input[key], `${ENV_PREFIX}${ENV_NAMES[key]}`);
+
+	/** Names the option and the source it came from, so a warning points at the file to edit. */
+	const labelOf = (key: ConfigKey) => {
+		const envName = `${ENV_PREFIX}${ENV_NAMES[key]}`;
+		if (process.env[envName]) return `${key} in $${envName}`;
+		const source = sources.find(({ config }) => config && key in config);
+		return source ? `${key} in ${source.label}` : key;
+	};
 
 	return {
+		issues,
+		string: <T extends string | undefined>(key: ConfigKey, fallback: T) =>
+			parseStringLike(read(key), labelOf(key), fallback, issues),
+		boolean: (key: ConfigKey, fallback: boolean) =>
+			parseBooleanLike(read(key), labelOf(key), fallback, issues),
+		number: (key: ConfigKey, fallback: number) =>
+			parseNumberLike(read(key), labelOf(key), fallback, issues),
+		json: (key: ConfigKey, fallback?: Record<string, unknown>) =>
+			parseJsonLike(read(key), labelOf(key), fallback, issues),
+	};
+};
+
+function parseConfig(
+	input: Record<string, unknown>,
+	sources: ConfigSource[],
+): { config: Config; issues: ConfigIssues } {
+	const read = createReader(input, sources);
+
+	const cacheDir = cleanupPath(read.string("cacheDir", defaultConfig.cacheDir));
+	const remotePlugin = read.string("remotePlugin", undefined);
+	const remoteOptions = read.json("remoteOptions");
+
+	const config: Config = {
 		cacheDir,
-		enable: parseBooleanLike(
-			readEnvValue(input.enable, `${ENV_PREFIX}ENABLE`),
-			"enable",
-			defaultConfig.enable,
-			issues,
-		),
-		debug: parseBooleanLike(
-			readEnvValue(input.debug, `${ENV_PREFIX}DEBUG`),
-			"debug",
-			defaultConfig.debug,
-			issues,
-		),
-		cacheGcTimeDays: parseNumberLike(
-			readEnvValue(input.cacheGcTimeDays, `${ENV_PREFIX}GC_TIME_DAYS`),
-			"cacheGcTimeDays",
-			defaultConfig.cacheGcTimeDays,
-			issues,
-		),
+		enable: read.boolean("enable", defaultConfig.enable),
+		debug: read.boolean("debug", defaultConfig.debug),
+		cacheGcTimeDays: read.number("cacheGcTimeDays", defaultConfig.cacheGcTimeDays),
 		// Only set the optional keys when they resolve to a value, so `"remotePlugin" in config`
 		// keeps working for consumers (and matches the shape the schema used to produce).
 		...(remotePlugin !== undefined ? { remotePlugin } : {}),
 		...(remoteOptions !== undefined ? { remoteOptions } : {}),
 		getPath: (args: ResolveBuildCacheProps) => getCachedAppPath({ ...args, cacheDir }),
 	};
+
+	return { config, issues: read.issues };
 }
 
 let config: Config | null = null;
+let reportedIssues = "";
+
+/**
+ * getConfig runs on every resolve/upload call, and with app config options it cannot use its
+ * cache, so the same warnings would otherwise be printed several times per build.
+ */
+const reportIssues = (issues: ConfigIssues) => {
+	const reported = issues.join("\n");
+	if (reported === "" || reported === reportedIssues) return;
+	reportedIssues = reported;
+	for (const issue of issues) logger.warn(issue);
+};
 
 export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config {
 	if (config && !appConfig) return config; // Return cached config if already loaded & no new appConfig is passed
@@ -149,9 +178,14 @@ export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config 
 
 	try {
 		const configResult = explorerSync.search();
-		const issues: ConfigIssues = [];
 
-		config = parseConfig(
+		// Ordered by precedence, matching the spread below.
+		const configSources: ConfigSource[] = [];
+		if (configResult)
+			configSources.push({ label: configResult.filepath, config: configResult.config });
+		if (appConfig) configSources.push({ label: "appConfig", config: appConfig });
+
+		const parseResult = parseConfig(
 			{
 				...defaultConfig,
 				...appConfig,
@@ -163,28 +197,10 @@ export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config 
 					...(configResult?.config?.remoteOptions ?? {}),
 				},
 			},
-			issues,
+			configSources,
 		);
-
-		const configSources: Array<{ source: string; config: unknown }> = [];
-		if (configResult)
-			configSources.push({
-				source: configResult.filepath,
-				config: configResult.config,
-			});
-		if (appConfig) configSources.push({ source: "appConfig", config: appConfig });
-
-		// Bad values fall back per field, so name the sources to make them findable.
-		if (issues.length > 0) {
-			for (const issue of issues) logger.warn(issue);
-			logger.warn(
-				texts.config.checkSources(
-					configSources.length > 0
-						? configSources.map(({ source }) => source).join(", ")
-						: `environment variables (${ENV_PREFIX}*)`,
-				),
-			);
-		}
+		config = parseResult.config;
+		reportIssues(parseResult.issues);
 
 		if (config.debug) {
 			logger.debug("expo-build-disk-cache config:");
