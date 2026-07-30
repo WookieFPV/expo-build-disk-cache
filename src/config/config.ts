@@ -7,6 +7,7 @@ import { logger } from "../logger.ts";
 import { dedupeArray } from "../utils/dedupeArray.ts";
 import { xdgConfig } from "../utils/npmXdgBasedir.ts";
 import {
+	asRecord,
 	type BooleanLike,
 	type ConfigIssues,
 	cleanupPath,
@@ -95,7 +96,21 @@ const ENV_NAMES = {
 type ConfigKey = keyof typeof ENV_NAMES;
 
 /** A config source, in the order it takes precedence (excluding env variables, which always win). */
-type ConfigSource = { label: string; config: Record<string, unknown> | undefined };
+type ConfigSource = { label: string; config: Record<string, unknown> };
+
+const envNameOf = (key: ConfigKey) => `${ENV_PREFIX}${ENV_NAMES[key]}`;
+
+/**
+ * remoteOptions is the one option that is merged per key instead of replaced, so a config file can
+ * override a single option of the app config. Anything that is not an object (a JSON string, or a
+ * wrong type) is passed through unchanged, leaving parseJsonLike to parse it or warn about it.
+ */
+const mergeRemoteOptions = (fromAppConfig: unknown, fromFile: unknown): unknown => {
+	const appOptions = asRecord(fromAppConfig);
+	const fileOptions = asRecord(fromFile);
+	if (appOptions && fileOptions) return { ...appOptions, ...fileOptions };
+	return fromFile ?? fromAppConfig ?? {};
+};
 
 /**
  * Reads options out of the merged (and, since cosmiconfig returns whatever the user wrote,
@@ -105,13 +120,13 @@ type ConfigSource = { label: string; config: Record<string, unknown> | undefined
 const createReader = (input: Record<string, unknown>, sources: ConfigSource[]) => {
 	const issues: ConfigIssues = [];
 
-	const read = (key: ConfigKey) => readEnvValue(input[key], `${ENV_PREFIX}${ENV_NAMES[key]}`);
+	const read = (key: ConfigKey) => readEnvValue(input[key], envNameOf(key));
 
 	/** Names the option and the source it came from, so a warning points at the file to edit. */
 	const labelOf = (key: ConfigKey) => {
-		const envName = `${ENV_PREFIX}${ENV_NAMES[key]}`;
+		const envName = envNameOf(key);
 		if (process.env[envName]) return `${key} in $${envName}`;
-		const source = sources.find(({ config }) => config && key in config);
+		const source = sources.find(({ config }) => key in config);
 		return source ? `${key} in ${source.label}` : key;
 	};
 
@@ -136,7 +151,9 @@ function parseConfig(
 
 	const cacheDir = cleanupPath(read.string("cacheDir", defaultConfig.cacheDir));
 	const remotePlugin = read.string("remotePlugin", undefined);
-	const remoteOptions = read.json("remoteOptions");
+	// An unparsable env override falls back to the options merged from the other sources, so a typo
+	// in $DISK_CACHE_REMOTE_OPTIONS does not silently strip the options the project configured.
+	const remoteOptions = read.json("remoteOptions", asRecord(input["remoteOptions"]));
 
 	const config: Config = {
 		cacheDir,
@@ -177,24 +194,26 @@ export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config 
 
 	try {
 		const configResult = explorerSync.search();
+		const fileConfig = asRecord(configResult?.config);
+		const appConfigValues = asRecord(appConfig);
 
 		// Ordered by precedence, matching the spread below.
 		const configSources: ConfigSource[] = [];
-		if (configResult)
-			configSources.push({ label: configResult.filepath, config: configResult.config });
-		if (appConfig) configSources.push({ label: "appConfig", config: appConfig });
+		if (configResult && fileConfig)
+			configSources.push({ label: configResult.filepath, config: fileConfig });
+		if (appConfigValues) configSources.push({ label: "appConfig", config: appConfigValues });
 
 		const parseResult = parseConfig(
 			{
 				...defaultConfig,
-				...appConfig,
+				...appConfigValues,
 				// Config files are read last on purpose: they allow per-machine overrides of the
 				// (fingerprint-relevant) app config. Env vars still win, see readEnvValue.
-				...configResult?.config,
-				remoteOptions: {
-					...(appConfig?.remoteOptions ?? {}),
-					...(configResult?.config?.remoteOptions ?? {}),
-				},
+				...fileConfig,
+				remoteOptions: mergeRemoteOptions(
+					appConfigValues?.["remoteOptions"],
+					fileConfig?.["remoteOptions"],
+				),
 			},
 			configSources,
 		);

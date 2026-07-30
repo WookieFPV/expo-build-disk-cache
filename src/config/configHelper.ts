@@ -9,9 +9,10 @@ export type BooleanLike = boolean | string | number;
  * Config values come from untrusted sources (config files, env vars, app config), so every parser
  * takes `unknown` and falls back to the default instead of throwing.
  *
- * Problems are collected instead of logged directly, so that getConfig can report all of them at
- * once and the parsers stay pure. (It also keeps this module free of the `logger` -> `config`
- * import cycle.) `label` names the option in those messages and may include where it came from.
+ * Problems are collected into this array instead of being logged directly, so that getConfig can
+ * report all of them at once and reporting stays out of this module (which also keeps it free of
+ * the `logger` -> `config` import cycle). `label` names the option in those messages and may
+ * include where it came from.
  */
 export type ConfigIssues = string[];
 
@@ -36,10 +37,18 @@ const describeValue = (value: unknown): string => {
 };
 
 const describeFallback = (defaultValue: unknown): string =>
-	defaultValue === undefined ? "ignoring it" : `using default: ${String(defaultValue)}`;
+	defaultValue === undefined ? "ignoring it" : `using default: ${describeValue(defaultValue)}`;
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
 	typeof value === "object" && value !== null && !Array.isArray(value);
+
+/**
+ * Config sources are untyped at runtime: a config file may contain a bare string or array, and the
+ * app config is whatever the user wrote in `app.json`. Anything that is not a plain object cannot
+ * be read key by key (`"key" in "some string"` throws), so it is dropped here instead.
+ */
+export const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+	isPlainObject(value) ? value : undefined;
 
 /**
  * Environment variables take precedence over every other config source.

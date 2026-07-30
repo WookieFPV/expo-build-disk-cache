@@ -58,8 +58,9 @@ describe.skipIf(!perfTestsEnabled)("resolveBuildCache Perf", () => {
 			const [resultWrite, writeDuration] = await timedPromise(
 				DiskBuildCacheProvider.uploadBuildCache({ ...options, buildPath }, args),
 			);
-			expect(resultWrite).toBeString();
+			// Registered before the assertions so a failed budget still cleans up what it wrote.
 			if (resultWrite) tempFiles.push(resultWrite);
+			expect(resultWrite).toBeString();
 			expect(writeDuration).toBeLessThan(sizeMb * writeBudgetMsPerMb);
 
 			const [resultRead2, readDuration2] = await timedPromise(

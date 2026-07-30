@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { mockLogger } from "../../__tests__/test-setup.ts";
 import { getConfig } from "../config";
 import type { BooleanLike, NumberLike } from "../configHelper.ts";
@@ -196,7 +199,7 @@ describe("getConfig", () => {
 
 		const config = getConfig({ remotePlugin: "custom", remoteOptions: { foo: 1 } });
 
-		expect(config.remoteOptions).toBeUndefined();
+		expect(config.remoteOptions).toEqual({ foo: 1 });
 		expect(mockLogger.warn.mock.calls.flat().join("\n")).toContain("remoteOptions");
 	});
 
@@ -213,6 +216,25 @@ describe("getConfig", () => {
 
 		expect(config.cacheDir).not.toContain("~");
 		expect(config.cacheDir.endsWith("my-cache")).toBe(true);
+	});
+
+	it("ignores a config file that does not contain an object", () => {
+		// A config file is whatever the user wrote: `"disk-cache.json"` may hold a bare string, and
+		// reading options off it key by key must not throw.
+		const dir = fs.mkdtempSync(path.join(os.tmpdir(), "disk-cache-config-"));
+		fs.writeFileSync(path.join(dir, "disk-cache.json"), '"not-an-object"');
+		const originalCwd = process.cwd();
+
+		try {
+			process.chdir(dir);
+			const config = getConfig({ cacheGcTimeDays: 30 });
+
+			expect(config.cacheGcTimeDays).toBe(30);
+			expect(mockLogger.error).not.toHaveBeenCalled();
+		} finally {
+			process.chdir(originalCwd);
+			fs.rmSync(dir, { recursive: true, force: true });
+		}
 	});
 
 	it("coerces number-like strings", () => {
