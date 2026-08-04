@@ -1,7 +1,7 @@
 {
 	"name": "expo-build-disk-cache",
 	"description": "Cache Expo iOS and Android native builds on local disk to skip repeated compilations.",
-	"version": "0.7.4",
+	"version": "0.7.5",
 	"author": {
 		"name": "WookieFPV (Lukas Müller)",
 		"url": "https://github.com/WookieFPV"
