@@ -1,14 +1,14 @@
 // @ts-expect-error
 import * as expoCacheProviderUtils from "@expo/cli/build/src/utils/build-cache-providers/index";
+import type { Config } from "../config/config.ts";
+import { logger } from "../logger.ts";
+import { texts } from "../texts.ts";
 import type {
 	BuildCacheProvider,
 	BuildCacheProviderPlugin,
 	ResolveBuildCacheProps,
 	UploadBuildCacheProps,
-} from "@expo/config";
-import type { Config } from "../config/config.ts";
-import { logger } from "../logger.ts";
-import { texts } from "../texts.ts";
+} from "../types/buildCacheProvider.ts";
 import { tryCatch } from "../utils/tryCatch.ts";
 
 export const getRemotePlugin = async (

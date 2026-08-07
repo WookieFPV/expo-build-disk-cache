@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { ResolveBuildCacheProps } from "@expo/config";
 import type { Config } from "../../config/config.ts";
 import { fileExists } from "../../file/fileExists.ts";
+import type { ResolveBuildCacheProps } from "../../types/buildCacheProvider.ts";
 import { fileCacheFactory } from "../fileCache.ts";
 
 const DAY_MS = 1000 * 60 * 60 * 24;

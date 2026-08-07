@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import fs from "node:fs/promises";
 import os from "node:os";
-import type { ResolveBuildCacheProps } from "@expo/config";
 import DiskBuildCacheProvider from "../index.ts";
+import type { ResolveBuildCacheProps } from "../types/buildCacheProvider.ts";
 import { timedPromise } from "../utils/timedPromise.ts";
 import { mockAppBuildWithSize } from "./mockAppBuild.ts";
 

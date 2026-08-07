@@ -1,8 +1,3 @@
-import type {
-	BuildCacheProviderPlugin,
-	ResolveBuildCacheProps,
-	UploadBuildCacheProps,
-} from "@expo/config";
 import { fileCacheFactory } from "./cache/fileCache.ts";
 import {
 	type Config,
@@ -14,6 +9,11 @@ import { withConfig } from "./config/withConfig.ts";
 import { logger } from "./logger.ts";
 import { getRemotePlugin } from "./remotePlugin/getRemotePlugin.ts";
 import { texts } from "./texts.ts";
+import type {
+	BuildCacheProviderPlugin,
+	ResolveBuildCacheProps,
+	UploadBuildCacheProps,
+} from "./types/buildCacheProvider.ts";
 import { tryCatch } from "./utils/tryCatch.ts";
 
 async function readFromDisk(args: ResolveBuildCacheProps, config: Config): Promise<string | null> {

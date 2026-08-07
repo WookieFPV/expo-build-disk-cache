@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import os from "node:os";
-import type { ResolveBuildCacheProps } from "@expo/config";
 import DiskBuildCacheProvider from "../index.ts";
 import { texts } from "../texts.ts";
+import type { ResolveBuildCacheProps } from "../types/buildCacheProvider.ts";
 import { mockAppBuild } from "./mockAppBuild.ts";
 import { mockLogger } from "./test-setup.ts";
 

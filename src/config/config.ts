@@ -1,9 +1,9 @@
-import type { ResolveBuildCacheProps } from "@expo/config";
 import { cosmiconfigSync } from "cosmiconfig";
 import envPaths from "env-paths";
 import { getCachedAppPath } from "../buildCache.ts";
 import { getDefaultCacheDir } from "../cache/cacheDirectory.ts";
 import { logger } from "../logger.ts";
+import type { ResolveBuildCacheProps } from "../types/buildCacheProvider.ts";
 import { dedupeArray } from "../utils/dedupeArray.ts";
 import { xdgConfig } from "../utils/npmXdgBasedir.ts";
 import {

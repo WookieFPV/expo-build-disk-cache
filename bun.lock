@@ -22,7 +22,6 @@
       },
       "peerDependencies": {
         "@expo/cli": "*",
-        "@expo/config": "*",
       },
     },
   },

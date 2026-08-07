@@ -1,6 +1,6 @@
+import fs from "node:fs";
 import path from "node:path";
-import type { ResolveBuildCacheProps } from "@expo/config";
-import { getPackageJson } from "@expo/config";
+import type { ResolveBuildCacheProps } from "./types/buildCacheProvider.ts";
 
 export const filePrefix = "fingerprint.";
 export const devClientSuffix = ".dev-client";
@@ -65,6 +65,12 @@ export function isDevClientBuild({
 }
 
 export function hasDirectDevClientDependency(projectRoot: string): boolean {
-	const { dependencies = {}, devDependencies = {} } = getPackageJson(projectRoot);
+	const packageJson = JSON.parse(
+		fs.readFileSync(path.join(projectRoot, "package.json"), "utf8"),
+	) as {
+		dependencies?: Record<string, string>;
+		devDependencies?: Record<string, string>;
+	};
+	const { dependencies = {}, devDependencies = {} } = packageJson;
 	return !!dependencies["expo-dev-client"] || !!devDependencies["expo-dev-client"];
 }

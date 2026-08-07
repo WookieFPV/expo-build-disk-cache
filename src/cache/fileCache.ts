@@ -1,11 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { ResolveBuildCacheProps, UploadBuildCacheProps } from "@expo/config";
 import type { Config } from "../config/config.ts";
 import { fileExists } from "../file/fileExists.ts";
 import { getDirectorySize, getDirectoryStats } from "../file/folderHelper.ts";
 import { formatBytes } from "../file/formatBytes.ts";
 import { logger } from "../logger.ts";
+import type { ResolveBuildCacheProps, UploadBuildCacheProps } from "../types/buildCacheProvider.ts";
 import { tryCatch } from "../utils/tryCatch.ts";
 import { readAppFiles } from "./filterFiles.ts";
 

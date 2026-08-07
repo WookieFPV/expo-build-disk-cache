@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import os from "node:os";
 import path from "node:path";
-import type { ResolveBuildCacheProps } from "@expo/config";
 import { file } from "bun";
 import type { Config } from "../config/config.ts";
 import DiskBuildCacheProvider from "../index.ts";
+import type { ResolveBuildCacheProps } from "../types/buildCacheProvider.ts";
 import { mockAppBuild } from "./mockAppBuild.ts";
 
 // Define a temporary directory for tests

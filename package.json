@@ -61,8 +61,7 @@
 		"@expo/config": "56.0.9"
 	},
 	"peerDependencies": {
-		"@expo/cli": "*",
-		"@expo/config": "*"
+		"@expo/cli": "*"
 	},
 	"engines": {
 		"node": ">=18.0.0"
