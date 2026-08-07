@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.6
+
+### Patch Changes
+
+- ebff63d: Remove the `@expo/config` peer and runtime dependency to prevent mismatched `@expo/config` version alongside the consuming Expo SDK.
+
 ## 0.7.5
 
 ### Patch Changes
