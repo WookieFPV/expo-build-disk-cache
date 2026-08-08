@@ -19,8 +19,7 @@ export const getRemotePlugin = async (
 		resolveProviderPlugin(args.projectRoot, appConfig.remotePlugin),
 	);
 	if (!plugin || error) {
-		logger.log(texts.remotePlugin.loadError(appConfig.remotePlugin));
-		logger.debug(error);
+		logger.log(texts.remotePlugin.loadError(appConfig.remotePlugin, error?.message));
 		return null;
 	}
 	return {

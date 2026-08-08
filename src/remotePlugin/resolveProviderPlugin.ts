@@ -28,6 +28,9 @@ const requireFromProject = (projectRoot: string) =>
  * Expo splits this into a direct-file-reference branch and a package-reference branch, but both
  * end in the same `resolve-from` call, so a single `require.resolve` covers both cases (and, like
  * Expo, leaves subpath resolution to the package's `exports`/`main`).
+ *
+ * Same limitation as Expo: a package that exposes only an `import` condition in its `exports` map
+ * is not resolvable from CJS and fails here, even though `importPluginFile` could have loaded it.
  */
 const resolvePluginFilePath = (projectRoot: string, pluginReference: string): string | null => {
 	try {
@@ -104,10 +107,10 @@ export const resolveProviderPlugin = async (
 	const pluginFile = resolvePluginFilePath(projectRoot, reference);
 	if (!pluginFile) {
 		throw new Error(
-			`Failed to resolve provider plugin "${reference}" relative to "${projectRoot}".` +
+			`Failed to resolve provider plugin "${reference}" relative to "${projectRoot}". ` +
 				(reference === EAS_PROVIDER_PACKAGE
-					? ` Install it with \`npx expo install --dev ${EAS_PROVIDER_PACKAGE}\`.`
-					: " Do you have node modules installed?"),
+					? `Install it with \`npx expo install --dev ${EAS_PROVIDER_PACKAGE}\`.`
+					: 'Make sure it is installed in the project and resolvable from CommonJS (a package exposing only an "import" export condition is not supported).'),
 		);
 	}
 
