@@ -1,15 +1,13 @@
-// @ts-expect-error
-import * as expoCacheProviderUtils from "@expo/cli/build/src/utils/build-cache-providers/index";
 import type { Config } from "../config/config.ts";
 import { logger } from "../logger.ts";
 import { texts } from "../texts.ts";
 import type {
-	BuildCacheProvider,
 	BuildCacheProviderPlugin,
 	ResolveBuildCacheProps,
 	UploadBuildCacheProps,
 } from "../types/buildCacheProvider.ts";
 import { tryCatch } from "../utils/tryCatch.ts";
+import { resolveProviderPlugin } from "./resolveProviderPlugin.ts";
 
 export const getRemotePlugin = async (
 	args: ResolveBuildCacheProps | UploadBuildCacheProps,
@@ -17,17 +15,12 @@ export const getRemotePlugin = async (
 ) => {
 	if (!appConfig.remotePlugin) return null;
 
-	const remotePluginConfig =
-		appConfig.remotePlugin === "eas"
-			? "eas"
-			: { plugin: appConfig.remotePlugin, options: appConfig.remoteOptions };
-
-	const { data, error } = await tryCatch<BuildCacheProvider>(
-		expoCacheProviderUtils.resolveBuildCacheProvider(remotePluginConfig, args.projectRoot),
+	const { data: plugin, error } = await tryCatch(
+		resolveProviderPlugin(args.projectRoot, appConfig.remotePlugin),
 	);
-	const plugin = data?.plugin;
 	if (!plugin || error) {
 		logger.log(texts.remotePlugin.loadError(appConfig.remotePlugin));
+		logger.debug(error);
 		return null;
 	}
 	return {

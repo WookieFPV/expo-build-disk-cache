@@ -93,7 +93,13 @@ _Remote caching solutions only transfer files needed for the current build, sign
 
 ## Using with EAS Remote Build Cache Provider
 
-Enable EAS remote caching by setting `remotePlugin` to `eas` in your options:
+Install the EAS provider in your project:
+
+```bash
+npx expo install --dev eas-build-cache-provider
+```
+
+Then enable EAS remote caching by setting `remotePlugin` to `eas` in your options:
 
 ```json
 {
