@@ -86,6 +86,23 @@ describe("resolveProviderPlugin", () => {
 		);
 	});
 
+	it("does not unwrap past a valid plugin that has its own default key", async () => {
+		await withProject(
+			nodeModule(
+				"default-key-provider",
+				`module.exports = {
+				  resolveBuildCache: async () => "/resolved",
+				  uploadBuildCache: async () => "/uploaded",
+				  default: { nope: true },
+				};`,
+			),
+			async (projectRoot) => {
+				const plugin = await resolveProviderPlugin(projectRoot, "default-key-provider");
+				expect("resolveBuildCache" in plugin).toBeTrue();
+			},
+		);
+	});
+
 	it("loads an ESM-only provider plugin", async () => {
 		await withProject(
 			{

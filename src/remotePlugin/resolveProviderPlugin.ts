@@ -20,45 +20,31 @@ import type { BuildCacheProviderPlugin } from "../types/buildCacheProvider.ts";
 /** The package Expo uses for its built-in `"eas"` provider. */
 const EAS_PROVIDER_PACKAGE = "eas-build-cache-provider";
 
-/** Matches lines starting with `.`, `/` or `~/`, or any reference containing a subpath. */
-const moduleNameIsDirectFileReference = (name: string): boolean => {
-	if (/^(\.|~\/|\/)/.test(name)) return true;
-	const slashCount = name.split("/").length;
-	// Scoped packages (like `@org/pkg`) need more than one slash to be a direct file reference.
-	return name.startsWith("@") ? slashCount > 2 : slashCount > 1;
-};
-
-const moduleNameIsPackageReference = (name: string): boolean => {
-	const slashCount = name.split("/").length;
-	return name.startsWith("@") ? slashCount === 2 : slashCount === 1;
-};
-
 /** A `require` anchored in the project, so plugins resolve out of the project's node_modules. */
 const requireFromProject = (projectRoot: string) =>
 	createRequire(path.join(path.resolve(projectRoot), "noop.js"));
 
+/**
+ * Expo splits this into a direct-file-reference branch and a package-reference branch, but both
+ * end in the same `resolve-from` call, so a single `require.resolve` covers both cases (and, like
+ * Expo, leaves subpath resolution to the package's `exports`/`main`).
+ */
 const resolvePluginFilePath = (projectRoot: string, pluginReference: string): string | null => {
-	const projectRequire = requireFromProject(projectRoot);
 	try {
-		if (moduleNameIsDirectFileReference(pluginReference)) {
-			return projectRequire.resolve(pluginReference);
-		}
-		if (moduleNameIsPackageReference(pluginReference)) {
-			return projectRequire.resolve(pluginReference);
-		}
+		return requireFromProject(projectRoot).resolve(pluginReference);
 	} catch {
 		return null;
 	}
-	return null;
 };
 
 /**
  * A literal `import()` is rewritten to `require()` by the CJS build, which would defeat the ESM
- * fallback below. Building the import through `Function` keeps it a real dynamic import.
+ * fallback below; building the import through `Function` keeps it a real dynamic import. Built
+ * lazily so that a runtime which forbids code generation only breaks this fallback, rather than
+ * failing to load the module at all.
  */
-const dynamicImport = new Function("specifier", "return import(specifier)") as (
-	specifier: string,
-) => Promise<unknown>;
+const dynamicImport = (specifier: string): Promise<unknown> =>
+	(new Function("s", "return import(s)") as (s: string) => Promise<unknown>)(specifier);
 
 /**
  * `require` first (that is what Expo does, and it keeps CJS plugins synchronous-ish), falling back
@@ -75,18 +61,6 @@ const importPluginFile = async (projectRoot: string, pluginFile: string): Promis
 	}
 };
 
-/** Unwraps `export default` / `module.exports.default` interop wrappers. */
-const unwrapDefault = (value: unknown): unknown => {
-	let plugin = value;
-	// Two levels: an ESM namespace of a transpiled CJS module nests `default.default`.
-	for (let i = 0; i < 2; i++) {
-		if (plugin && typeof plugin === "object" && "default" in plugin && plugin.default != null) {
-			plugin = plugin.default;
-		}
-	}
-	return plugin;
-};
-
 const isProviderPlugin = (plugin: unknown): plugin is BuildCacheProviderPlugin<unknown> => {
 	if (typeof plugin !== "object" || plugin === null) return false;
 	const candidate = plugin as Record<string, unknown>;
@@ -97,6 +71,22 @@ const isProviderPlugin = (plugin: unknown): plugin is BuildCacheProviderPlugin<u
 		typeof candidate["uploadBuildCache"] === "function" ||
 		typeof candidate["uploadRemoteBuildCache"] === "function";
 	return canResolve && canUpload;
+};
+
+/**
+ * Digs through `export default` / `module.exports.default` interop wrappers (an ESM namespace
+ * around a transpiled CJS module nests them twice) to find the plugin. Unwrapping stops at the
+ * first value that validates, so a plugin carrying its own `default` key is never unwrapped past.
+ */
+const toProviderPlugin = (value: unknown): BuildCacheProviderPlugin<unknown> | null => {
+	let candidate = value;
+	for (let depth = 0; depth <= 2; depth++) {
+		if (isProviderPlugin(candidate)) return candidate;
+		if (typeof candidate !== "object" || candidate === null || !("default" in candidate))
+			return null;
+		candidate = candidate.default;
+	}
+	return null;
 };
 
 /**
@@ -121,8 +111,8 @@ export const resolveProviderPlugin = async (
 		);
 	}
 
-	const plugin = unwrapDefault(await importPluginFile(projectRoot, pluginFile));
-	if (!isProviderPlugin(plugin)) {
+	const plugin = toProviderPlugin(await importPluginFile(projectRoot, pluginFile));
+	if (!plugin) {
 		throw new Error(
 			`The provider plugin "${reference}" must export an object containing the resolveBuildCache and uploadBuildCache functions.`,
 		);
