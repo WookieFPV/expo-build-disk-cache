@@ -2,7 +2,11 @@ import { describe, expect, it } from "bun:test";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { resolveProviderPlugin } from "../resolveProviderPlugin.ts";
+import {
+	importPluginFile,
+	resolvePluginFilePath,
+	resolveProviderPlugin,
+} from "../resolveProviderPlugin.ts";
 
 const validPluginSource = `
 module.exports = {
@@ -121,15 +125,48 @@ describe("resolveProviderPlugin", () => {
 		);
 	});
 
-	it("accepts the deprecated resolveRemoteBuildCache/uploadRemoteBuildCache shape", async () => {
+	it("normalizes the deprecated resolveRemoteBuildCache/uploadRemoteBuildCache shape", async () => {
 		await withProject(
 			nodeModule(
 				"legacy-provider",
-				`module.exports = { resolveRemoteBuildCache: async () => null, uploadRemoteBuildCache: async () => null };`,
+				`module.exports = { resolveRemoteBuildCache: async () => "/resolved", uploadRemoteBuildCache: async () => null };`,
 			),
 			async (projectRoot) => {
 				const plugin = await resolveProviderPlugin(projectRoot, "legacy-provider");
-				expect("resolveRemoteBuildCache" in plugin).toBeTrue();
+				expect(typeof plugin.resolveBuildCache).toBe("function");
+				expect(typeof plugin.uploadBuildCache).toBe("function");
+			},
+		);
+	});
+
+	it("prefers a working deprecated method over a present-but-undefined current one", async () => {
+		await withProject(
+			nodeModule(
+				"half-transpiled-provider",
+				`exports.resolveBuildCache = void 0;
+				exports.resolveRemoteBuildCache = async () => "/resolved";
+				exports.uploadRemoteBuildCache = async () => "/uploaded";`,
+			),
+			async (projectRoot) => {
+				const plugin = await resolveProviderPlugin(projectRoot, "half-transpiled-provider");
+				expect(await plugin.resolveBuildCache({} as never, undefined)).toBe("/resolved");
+				expect(await plugin.uploadBuildCache({} as never, undefined)).toBe("/uploaded");
+			},
+		);
+	});
+
+	it("accepts a callable module.exports with the plugin methods attached", async () => {
+		await withProject(
+			nodeModule(
+				"callable-provider",
+				`module.exports = Object.assign(function plugin() {}, {
+				  resolveBuildCache: async () => "/resolved",
+				  uploadBuildCache: async () => "/uploaded",
+				});`,
+			),
+			async (projectRoot) => {
+				const plugin = await resolveProviderPlugin(projectRoot, "callable-provider");
+				expect(await plugin.resolveBuildCache({} as never, undefined)).toBe("/resolved");
 			},
 		);
 	});
@@ -155,6 +192,43 @@ describe("resolveProviderPlugin", () => {
 				/Failed to resolve provider plugin/,
 			);
 		});
+	});
+
+	it("surfaces the real cause when resolution fails for a reason other than a missing package", () => {
+		const nodeStyleRequire = {
+			resolve: () => {
+				throw Object.assign(
+					new Error(`Package subpath './other.js' is not defined by "exports" in package.json`),
+					{ code: "ERR_PACKAGE_PATH_NOT_EXPORTED" },
+				);
+			},
+		} as unknown as NodeJS.Require;
+		expect(() => resolvePluginFilePath(nodeStyleRequire, "/project", "pkg/other.js")).toThrow(
+			/not defined by "exports"/,
+		);
+		expect(() => resolvePluginFilePath(nodeStyleRequire, "/project", "pkg/other.js")).not.toThrow(
+			/Make sure it is installed/,
+		);
+	});
+
+	it("falls back to dynamic import when require rejects ESM like Node <20.19", async () => {
+		await withProject(
+			{
+				"provider.mjs": `export default { resolveBuildCache: async () => "/resolved", uploadBuildCache: async () => null };`,
+			},
+			async (projectRoot) => {
+				const requireRejectingEsm = (() => {
+					throw Object.assign(new Error("require() of ES Module is not supported"), {
+						code: "ERR_REQUIRE_ESM",
+					});
+				}) as unknown as NodeJS.Require;
+				const namespace = (await importPluginFile(
+					requireRejectingEsm,
+					path.join(projectRoot, "provider.mjs"),
+				)) as { default?: { resolveBuildCache?: unknown } };
+				expect(typeof namespace.default?.resolveBuildCache).toBe("function");
+			},
+		);
 	});
 
 	it("throws when the resolved module is not a provider plugin", async () => {

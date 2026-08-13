@@ -32,7 +32,6 @@ async function readFromDisk(args: ResolveBuildCacheProps, config: Config): Promi
 			try {
 				const remotePluginProvider = await getRemotePlugin(args, {
 					remotePlugin: config.remotePlugin,
-					remoteOptions: config.remoteOptions,
 				});
 
 				const downloadPath = await remotePluginProvider?.resolveBuildCache(
@@ -72,7 +71,6 @@ async function writeToDisk(args: UploadBuildCacheProps, config: Config): Promise
 			try {
 				const remotePluginProvider = await getRemotePlugin(args, {
 					remotePlugin: config.remotePlugin,
-					remoteOptions: config.remoteOptions,
 				});
 				await remotePluginProvider?.uploadBuildCache(args, config.remoteOptions);
 			} catch (_e) {
