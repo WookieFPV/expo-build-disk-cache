@@ -15,8 +15,10 @@ export const texts = {
 			}`,
 	},
 	remotePlugin: {
-		loadError: (remotePlugin: string | undefined) =>
-			`💾[remote] failed to load plugin "${remotePlugin}"`,
+		// The reason is part of the message because it is actionable (a missing package, a plugin
+		// that exports the wrong shape) and would otherwise only be visible with debug enabled.
+		loadError: (remotePlugin: string | undefined, reason?: string) =>
+			`💾[remote] failed to load plugin "${remotePlugin}"${reason ? `: ${reason}` : ""}`,
 	},
 	config: {
 		invalidBool: (label: string, value: string, fallback: string) =>

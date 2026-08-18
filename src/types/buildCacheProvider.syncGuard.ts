@@ -1,6 +1,7 @@
 /**
- * We stopped depending on `@expo/config` at runtime/peer level (see the
- * CHANGELOG entry for 0.7.6) and instead maintain a local copy of its
+ * This package has no dependency on any Expo package at runtime or peer level:
+ * 0.7.6 dropped `@expo/config` and 0.7.7 dropped `@expo/cli` (see both
+ * CHANGELOG entries). It instead maintains a local copy of the
  * build-cache-provider types in ./buildCacheProvider.ts. `@expo/config`
  * stays as a devDependency purely so this file can catch drift: if a future
  * `@expo/config`/`@expo/cli` release reshapes these types, `tsc` fails here
