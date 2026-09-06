@@ -45,7 +45,7 @@
 		"prepublishOnly": "bun run typecheck && bun run lint:CI && bun test && bun run build"
 	},
 	"dependencies": {
-		"cosmiconfig": "^9.0.0",
+		"cosmiconfig": "^10.0.0",
 		"env-paths": "^2.2.1"
 	},
 	"devDependencies": {
