@@ -63,7 +63,7 @@
 		"node": ">=18.0.0"
 	},
 	"overrides": {
-		"uuid": "11.1.1",
+		"uuid": "14.0.2",
 		"esbuild": "0.28.2",
 		"brace-expansion": "5.0.9",
 		"browserslist": "4.28.8",
