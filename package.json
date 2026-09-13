@@ -49,7 +49,7 @@
 		"env-paths": "^2.2.1"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.5.12",
+		"@biomejs/biome": "2.5.13",
 		"@changesets/cli": "3.0.2",
 		"@total-typescript/ts-reset": "0.6.1",
 		"@tsconfig/bun": "1.0.11",
