@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { file } from "bun";
@@ -113,5 +114,23 @@ describe("uploadBuildCache", () => {
 		expect(result?.endsWith(`/fingerprint.${fingerprintHash}.apk`)).toBeTrue();
 		const appFile = file(result as string);
 		expect(await appFile.exists()).toBeTrue();
+	});
+	it("returns a path instead of throwing when the project has no package.json", async () => {
+		// Regression test: the cached file name is derived from the project's package.json, and
+		// that read used to happen outside uploadBuildCache's try/catch — an unreadable
+		// package.json escaped the provider and failed `expo run` instead of skipping the cache.
+		const projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), "disk-cache-no-pkg-"));
+		const fingerprintHash = crypto.randomUUID();
+		const buildPath = await mockAppBuild(fingerprintHash);
+
+		try {
+			const result = await DiskBuildCacheProvider.uploadBuildCache(
+				{ ...baseOptions, projectRoot, fingerprintHash, buildPath },
+				{ cacheDir: path.join(TEMP_DIR, "no-pkg-cache") },
+			);
+			expect(result).toBeString();
+		} finally {
+			await fs.rm(projectRoot, { recursive: true, force: true });
+		}
 	});
 });

@@ -75,4 +75,44 @@ describe("fileCache cleanup — GC in-use guard", () => {
 
 		expect(await fileExists(ghost)).toBe(false);
 	});
+	it("deletes a stale .app bundle directory", async () => {
+		const stale = path.join(cacheDir, "fingerprint.stale.app");
+		await fs.mkdir(path.join(stale, "nested"), { recursive: true });
+		await fs.writeFile(path.join(stale, "nested", "binary"), "app");
+		await makeStale(stale, 30);
+
+		const inUse = path.join(cacheDir, "fingerprint.in-use.apk");
+		const result = await fileCacheFactory(baseArgs, makeConfig(cacheDir, inUse)).cleanup();
+
+		expect(await fileExists(stale)).toBe(false);
+		expect(result.deletedCount).toBe(1);
+	});
+
+	it("keeps cleaning the remaining files when one entry cannot be stat'ed", async () => {
+		// A dangling symlink makes fs.stat throw ENOENT. Previously that aborted the whole
+		// cleanup loop, so every entry after it was silently kept forever.
+		await fs.symlink(
+			path.join(cacheDir, "missing-target"),
+			path.join(cacheDir, "fingerprint.broken.apk"),
+		);
+
+		const stale = path.join(cacheDir, "fingerprint.stale.apk");
+		await fs.writeFile(stale, "apk");
+		await makeStale(stale, 30);
+
+		const inUse = path.join(cacheDir, "fingerprint.in-use.apk");
+		const result = await fileCacheFactory(baseArgs, makeConfig(cacheDir, inUse)).cleanup();
+
+		expect(await fileExists(stale)).toBe(false);
+		expect(result.deletedCount).toBe(1);
+	});
+
+	it("reports no deletions when the cache directory has never been used", async () => {
+		const missingDir = path.join(cacheDir, "does-not-exist");
+		const inUse = path.join(missingDir, "fingerprint.in-use.apk");
+
+		const result = await fileCacheFactory(baseArgs, makeConfig(missingDir, inUse)).cleanup();
+
+		expect(result).toEqual({ deletedCount: 0, deletedSize: 0 });
+	});
 });

@@ -9,6 +9,6 @@ export const withConfig =
 	) =>
 	(args: T, config: FromType) => {
 		const appConfig = getConfig(config);
-		if ("enable" in appConfig && appConfig["enable"] === false) return Promise.resolve(null);
+		if (appConfig["enable"] === false) return Promise.resolve(null);
 		return baseFunction(args, appConfig);
 	};
