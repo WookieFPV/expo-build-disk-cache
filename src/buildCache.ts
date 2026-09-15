@@ -26,11 +26,9 @@ export function getCachedAppPath({
 	runOptions,
 	cacheDir,
 }: GetAppPath): string {
-	return path.resolve(
-		path.join(
-			path.resolve(cacheDir),
-			getFileName({ runOptions, projectRoot, fingerprintHash, platform }),
-		),
+	return path.join(
+		path.resolve(cacheDir),
+		getFileName({ runOptions, projectRoot, fingerprintHash, platform }),
 	);
 }
 
@@ -64,13 +62,25 @@ export function isDevClientBuild({
 	return true;
 }
 
+/**
+ * A project without a readable `package.json` is not something this package can do anything about,
+ * and it must not take the whole provider down: every cache path runs through here, and throwing
+ * would surface as a hard `expo run` failure instead of a cache miss.
+ *
+ * Deliberately silent: logging here would pull `logger` (and through it `config`) into an import
+ * cycle with this module, and the caller already reports the resulting cache miss.
+ */
 export function hasDirectDevClientDependency(projectRoot: string): boolean {
-	const packageJson = JSON.parse(
-		fs.readFileSync(path.join(projectRoot, "package.json"), "utf8"),
-	) as {
-		dependencies?: Record<string, string>;
-		devDependencies?: Record<string, string>;
-	};
-	const { dependencies = {}, devDependencies = {} } = packageJson;
-	return !!dependencies["expo-dev-client"] || !!devDependencies["expo-dev-client"];
+	try {
+		const packageJson = JSON.parse(
+			fs.readFileSync(path.join(projectRoot, "package.json"), "utf8"),
+		) as {
+			dependencies?: Record<string, string>;
+			devDependencies?: Record<string, string>;
+		};
+		const { dependencies = {}, devDependencies = {} } = packageJson;
+		return !!dependencies["expo-dev-client"] || !!devDependencies["expo-dev-client"];
+	} catch {
+		return false;
+	}
 }

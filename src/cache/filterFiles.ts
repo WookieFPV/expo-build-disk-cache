@@ -12,10 +12,8 @@ export const isValidFile = (filePath: string): boolean => {
 	return fileName.startsWith(filePrefix) && validExtensions.some((ext) => filePath.endsWith(ext));
 };
 
-export const readAppFiles = async (
-	directory: string,
-	filterFunc = isValidFile,
-): Promise<string[]> => {
+/** Lists the cached build artifacts in a directory, ignoring anything this package did not write. */
+export const readAppFiles = async (directory: string): Promise<string[]> => {
 	const files = await fs.readdir(directory);
-	return files.filter(filterFunc);
+	return files.filter(isValidFile);
 };

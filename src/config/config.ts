@@ -227,7 +227,7 @@ export function getConfig(appConfig?: Partial<ConfigInput> | undefined): Config 
 			logger.debug(`Final config: ${JSON.stringify(config, null, 2)}`);
 		}
 
-		return config ?? defaultConfig;
+		return config;
 	} catch (error) {
 		logger.error("Error loading config:", error);
 		config = defaultConfig; // Assign default config even on error.

@@ -1,3 +1,5 @@
+const UNITS = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"] as const;
+
 /**
  * Formats a file size in a human-readable way (e.g., 1.2 KB, 3.4 MB).
  * @param bytes The size in bytes.
@@ -5,13 +7,11 @@
  * @returns A human-readable string representation of the file size.
  */
 export const formatBytes = (bytes: number, decimals = 2): string => {
-	if (bytes === 0) return "0 Bytes";
+	if (!Number.isFinite(bytes) || bytes <= 0) return "0 Bytes";
 
-	const k = 1024;
-	const dm = decimals < 0 ? 0 : decimals;
-	const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+	const dm = Math.max(0, decimals);
+	// Clamped so that a size beyond the largest known unit degrades to "… YB" instead of "undefined".
+	const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), UNITS.length - 1);
 
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-	return `${Number.parseFloat((bytes / k ** i).toFixed(dm))}${sizes[i]}`;
+	return `${Number.parseFloat((bytes / 1024 ** exponent).toFixed(dm))} ${UNITS[exponent]}`;
 };
