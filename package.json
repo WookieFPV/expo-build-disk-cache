@@ -54,7 +54,7 @@
 		"@total-typescript/ts-reset": "0.6.1",
 		"@tsconfig/bun": "1.0.11",
 		"@types/bun": "1.4.2",
-		"lefthook": "2.1.12",
+		"lefthook": "2.1.14",
 		"tsup": "8.5.1",
 		"typescript": "6.0.3",
 		"@expo/config": "57.0.9"
