@@ -50,7 +50,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.13",
-		"@changesets/cli": "3.0.2",
+		"@changesets/cli": "3.0.3",
 		"@total-typescript/ts-reset": "0.6.1",
 		"@tsconfig/bun": "1.0.11",
 		"@types/bun": "1.4.2",
