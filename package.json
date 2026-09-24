@@ -56,7 +56,7 @@
 		"@types/bun": "1.4.2",
 		"lefthook": "2.1.14",
 		"tsup": "8.5.1",
-		"typescript": "6.0.3",
+		"typescript": "7.0.2",
 		"@expo/config": "57.0.9"
 	},
 	"engines": {
