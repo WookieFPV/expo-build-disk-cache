@@ -57,7 +57,7 @@
 		"lefthook": "2.2.2",
 		"tsup": "8.5.1",
 		"typescript": "6.0.3",
-		"@expo/config": "57.0.10"
+		"@expo/config": "58.0.7"
 	},
 	"engines": {
 		"node": ">=18.0.0"
