@@ -61,17 +61,5 @@
 	},
 	"engines": {
 		"node": ">=18.0.0"
-	},
-	"overrides": {
-		"uuid": "14.0.3",
-		"esbuild": "0.28.2",
-		"brace-expansion": "5.0.12",
-		"browserslist": "4.29.5",
-		"@babel/core": "8.0.10",
-		"@xmldom/xmldom": "0.9.12",
-		"js-yaml@^3.0.0": "3.15.2",
-		"js-yaml@^4.0.0": "4.3.2",
-		"nanoid": "6.0.2",
-		"postcss": "8.5.32"
 	}
 }
