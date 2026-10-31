@@ -32,8 +32,8 @@
 		"access": "public"
 	},
 	"scripts": {
-		"build": "tsup",
-		"build:dev": "tsup --watch --clean false",
+		"build": "bun --bun tsup",
+		"build:dev": "bun --bun tsup --watch --clean false",
 		"changeset": "changeset",
 		"test": "bun test",
 		"test:perf": "PERF_TESTS=1 bun test src/__tests__/resolveBuildCache.perf.test.ts",
