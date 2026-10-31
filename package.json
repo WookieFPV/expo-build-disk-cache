@@ -53,7 +53,7 @@
 		"@changesets/cli": "3.0.3",
 		"@total-typescript/ts-reset": "0.6.1",
 		"@tsconfig/bun": "1.0.11",
-		"@types/bun": "1.4.3",
+		"@types/bun": "1.4.4",
 		"lefthook": "2.2.2",
 		"tsup": "8.5.1",
 		"typescript": "6.0.3",
