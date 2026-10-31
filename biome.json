@@ -28,5 +28,9 @@
 			"quoteStyle": "double",
 			"lineWidth": 100
 		}
+	},
+	"markdown": {
+		"formatter": { "enabled": false },
+		"linter": { "enabled": false }
 	}
 }
