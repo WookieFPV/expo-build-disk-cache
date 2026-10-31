@@ -49,29 +49,20 @@
 		"env-paths": "^2.2.1"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.5.15",
+		"@biomejs/biome": "2.6.4",
 		"@changesets/cli": "3.0.3",
+		"@expo/config": "58.0.10",
 		"@total-typescript/ts-reset": "0.6.1",
 		"@tsconfig/bun": "1.0.11",
 		"@types/bun": "1.4.4",
 		"lefthook": "2.2.2",
-		"tsup": "8.5.1",
-		"typescript": "6.0.3",
-		"@expo/config": "57.0.10"
+		"tsup": "9.0.0",
+		"typescript": "6.0.3"
 	},
 	"engines": {
 		"node": ">=18.0.0"
 	},
 	"overrides": {
-		"uuid": "14.0.3",
-		"esbuild": "0.28.2",
-		"brace-expansion": "5.0.12",
-		"browserslist": "4.29.5",
-		"@babel/core": "8.0.9",
-		"@xmldom/xmldom": "0.9.12",
-		"js-yaml@^3.0.0": "3.15.1",
-		"js-yaml@^4.0.0": "4.3.1",
-		"nanoid": "6.0.2",
-		"postcss": "8.5.32"
+		"glob": "14.0.2"
 	}
 }
