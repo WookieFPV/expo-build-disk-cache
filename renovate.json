@@ -15,6 +15,11 @@
 		{
 			"matchPackageNames": ["env-paths"],
 			"enabled": false
+		},
+		{
+			"description": "tsup (rollup-plugin-dts) needs the TypeScript compiler API to emit dist/index.d.ts; TS 7 has none, and tsup 9 still calls it directly even with @typescript/typescript6 installed. Revisit when tsup supports TS 7.",
+			"matchPackageNames": ["typescript"],
+			"allowedVersions": "<7"
 		}
 	],
 	"schedule": ["every weekend"],
