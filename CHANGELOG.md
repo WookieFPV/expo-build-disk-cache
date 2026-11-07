@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1
+
+### Patch Changes
+
+- 341b928: Fix cache cleanup stopping early on an unreadable file, and a crash when the project has no readable `package.json`.
+
 ## 0.8.0
 
 ### Minor Changes
